@@ -1,0 +1,7 @@
+---
+
+- name: change bridge L2packet to network filter Enable 
+  import_tasks: change_bridge_l2packet_nf.yml
+
+- name: change SELINUX disable temporarily
+  import_tasks: change_selinux_disable.yml

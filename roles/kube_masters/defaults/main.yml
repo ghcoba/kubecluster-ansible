@@ -1,0 +1,31 @@
+---
+
+# common
+kube_bin_dir:
+kube_log_dir:
+
+
+# refered in apiserver
+kube_etcd_servers:
+
+kube_etcd_ca_file:
+kube_etcd_cert_file:
+kube_etcd_key_file:
+
+
+
+# refered in controller-manager
+
+kube_apiserver_lb_address:
+
+kube_controller_manager_kubeconfig_file:
+
+
+
+# refered in scheduler-manger
+
+kube_scheduler_kubeconfig_file:
+
+
+
+

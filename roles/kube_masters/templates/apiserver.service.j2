@@ -1,0 +1,41 @@
+[Unit]
+Description=kube-apiserver
+After=network.target
+After=etcd.service
+
+[Service]
+User=kube
+EnvironmentFile=-/etc/kubernetes/apiserver
+ExecStart={{ kube_bin_dir }}/kube-apiserver \
+	    --logtostderr=true \
+	    --v=0 \
+	    --advertise-address={{ kube_masters_machina_address }} \
+	    --bind-address={{ kube_masters_machine_address }} \
+	    --secure-port=6443 \
+	    --insecure-port=0 \
+	    --allow-privileged=true \
+	    --etcd-servers={{ kube_etcd_servers }} \
+	    --etcd-cafile={{ kube_etcd_ca_file }} \
+	    --etcd-certfile={{ kube_etcd_cert_file }} \
+	    --etcd-keyfile={{ kube_etcd_key_file }} \
+	    --storage-backend=etcd3 \
+	    --service-cluster-ip-range=10.96.0.0/12 \
+	    --tls-cert-file={{ kube_apiserver_cert_file }} \
+	    --tls-private-key-file={{ kube_apiserver_key_file }} \
+	    --client-ca-file={{ kube_ca_cert_file }} \
+	    --service-account-key-file={{ kube_ca_key_file }} \
+	    --experimental-bootstrap-token-auth=true \
+	    --apiserver-count=3 \
+	    --enable-swagger-ui=true \
+	    --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds \
+	    --authorization-mode=RBAC \
+	    --audit-log-maxage=30 \
+	    --audit-log-maxbackup=3 \
+	    --audit-log-maxsize=100 \
+	    --audit-log-path={{ kube_log_dir }}/audit.log
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

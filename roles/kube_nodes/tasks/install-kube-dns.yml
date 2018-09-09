@@ -1,0 +1,28 @@
+---
+
+- name: copy kube dns yml
+  copy:
+    src: "kube-dns/{{ item }}"
+    dest: "{{ ansible_temp_dir }}"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  with_items:
+    - kubedns-cm.yaml
+    - kubedns-sa.yaml
+    - kubedns-controller.yaml
+    - kubedns-svc.yaml
+    
+- name: apply kube dns yml
+  command: "{{ kube_bin_dir }}/kubectl apply -f {{ ansible_temp_dir }}/{{ item }}"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  with_items:
+    - kubedns-cm.yaml
+    - kubedns-sa.yaml
+    - kubedns-controller.yaml
+    - kubedns-svc.yaml
+    
+- name: scale kube dns
+  command: "{{ kube_bin_dir }}/kubectl --namespace=kube-system scale deployment kube-dns --replicas=3"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"

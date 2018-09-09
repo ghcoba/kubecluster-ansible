@@ -1,0 +1,22 @@
+---
+
+# cert directory
+kube_cert_dir:
+
+
+# cert files
+kube_ca_cert_file:
+kube_ca_key_file:
+
+kube_apiserver_cert_file:
+kube_apiserver_key_file:
+
+kube_admin_cert_file:
+kube_admin_key_file:
+
+kube_controller_manager_cert_file:
+kube_controller_manager_key_file:
+
+kube_scheduler_cert_file:
+kube_scheduler_key_file:
+

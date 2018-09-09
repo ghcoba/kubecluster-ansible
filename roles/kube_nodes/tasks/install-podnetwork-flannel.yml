@@ -1,0 +1,39 @@
+---
+
+- name: delete etcd client cert secret
+  command: "{{ kube_bin_dir }}/kubectl delete secret etcd-tls-secret \
+   -n kube-system"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+- name: create etcd client cert secret
+  command: "{{ kube_bin_dir }}/kubectl create secret generic etcd-tls-secret \
+   --from-file={{ kube_etcd_cert_file }} \
+   --from-file={{ kube_etcd_key_file }}  \
+   --from-file={{ kube_etcd_ca_file }} \
+   -n kube-system"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  
+- name: copy kube-flannel-rbac.yml
+  copy:
+    src: kube-flannel-rbac.yml
+    dest: "{{ ansible_temp_dir }}"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  
+
+- name: apply kube-flannel-rbac.yml
+  command: "{{ kube_bin_dir }}/kubectl apply -f {{ ansible_temp_dir }}/kube-flannel-rbac.yml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  
+- name: create kube-flannel.yml
+  template: 
+    src: kube-flannel.yml.j2
+    dest: "{{ ansible_temp_dir }}/kube-flannel.yml"
+    
+- name: apply kube-flannel.yml
+  command: "{{ kube_bin_dir }}/kubectl apply -f {{ ansible_temp_dir }}/kube-flannel.yml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
