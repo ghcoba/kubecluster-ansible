@@ -1,4 +1,4 @@
-# kubecluster-ansible (not usable)
+# kubecluster-ansible (not workable yet)
 
 
 
