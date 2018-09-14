@@ -1,0 +1,5 @@
+---
+
+- name: switch cluster node swap off
+  command:
+    "swapoff -a"

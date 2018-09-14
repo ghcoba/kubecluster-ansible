@@ -1,0 +1,63 @@
+---
+
+- name: ensure etcd certs directory
+  file:
+    path: "{{ etcd_certs_dir }}"
+    state: directory
+    owner: etcd
+    group: etcd
+    recurse: yes
+    
+- name: copy make-ca-cert.sh
+  copy:
+    src: make-ca-cert.sh
+    dest: "{{ etcd_certs_dir }}"
+    owner: root
+    group: root
+    mode: "0500"
+  run_once: true
+  delegate_to: "{{ groups['etcd-nodes'][0] }}"
+  
+# ---------------------------------------------------------------
+
+- name: gen certs on the first master server
+  command:
+    "{{ kube_cert_dir }}/make-ca-cert.sh"
+  args:
+    creates: "{{ kube_cert_dir }}/ca.key"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  environment:
+    NODE_IPS: "{% for host in groups['kube-masters'] %}{{ hostvars[host]['kube_masters_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+    NODE_DNS: "{{ groups['kube-masters']|join(',') }}"
+    CERT_DIR: "{{ kube_cert_dir }}"
+    CERT_GROUP: kube
+    
+- name: slurp kube certs
+  slurp:
+    src: "{{ item }}"
+  register: pki_certs
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  with_items: 
+    - "{{ kube_ca_cert_file }}"
+    - "{{ kube_ca_key_file }}"
+    - "{{ kube_admin_cert_file }}"
+    - "{{ kube_admin_key_file }}"
+    - "{{ kube_apiserver_cert_file }}"
+    - "{{ kube_apiserver_key_file }}"
+    - "{{ kube_controller_manager_cert_file }}"
+    - "{{ kube_controller_manager_key_file }}"
+    - "{{ kube_scheduler_cert_file }}"
+    - "{{ kube_scheduler_key_file }}"
+    
+- name: copy kube certs to other node servers
+  copy:
+    dest: "{{ item.item }}"
+    content: "{{ item.content | b64decode }}"
+    owner: kube
+    group: kube
+    mode: 0400
+  with_items: "{{ pki_certs.results }}"
+  when: inventory_hostname != groups['kube-masters'][0]
+
