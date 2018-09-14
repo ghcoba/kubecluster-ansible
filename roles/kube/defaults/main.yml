@@ -1,0 +1,137 @@
+---
+
+###############################################################################################
+# variables for etcd
+###############################################################################################
+
+etcd_version: 3.3.9
+
+etcd_download_url_base: "https://github.com/etcd-io/etcd/releases/download/v{{ etcd_version }}"
+etcd_release: "etcd-v{{ etcd_version }}-linux-amd64" 
+etcd_download_url: "{{ etcd_download_url_base }}/{{ etcd_release}}.tar.gz"
+
+etcd_bin_path: /usr/local/bin
+etcd_data_dir: /var/lib/etcd
+etcd_conf_dir: /etc/etcd
+etcd_certs_dir: "{{ etcd_conf_dir }}/ssl"
+
+etcd_cert_group: root
+
+#####    etcd cert files
+
+# ETCD SERVER CA
+etcd_ca_filename: "etcd-ca.pem"
+etcd_cert_filename: "etcd-server.pem"
+etcd_key_filename: "etcd-server-key.pem"
+etcd_ca_config_json_filename: "etcd-ca-config.json"
+etcd_ca_csr_json_filename: "etcd-ca-csr.json"
+etcd_ca_csr_filename: "etcd-ca.csr"
+
+etcd_ca_file: "{{ etcd_certs_dir }}/etcd-ca.pem"
+etcd_cert_file: "{{ etcd_certs_dir }}/etcd-server.pem"
+etcd_key_file: "{{ etcd_certs_dir }}/etcd-server-key.pem"
+
+# ETCD peer CA/CERT
+etcd_peer_ca_filename: "etcd-ca.pem"
+etcd_peer_cert_filename: "etcd-peer.pem"
+etcd_peer_key_filename: "etcd-peer-key.pem"
+etcd_peer_csr_json_filename: "etcd-peer-csr.json"
+etcd_peer_csr_filename: "etc-peer.csr"
+
+etcd_peer_ca_file: "{{ etcd_certs_dir }}/etcd-ca.pem"
+etcd_peer_cert_file: "{{ etcd_certs_dir }}/etcd-peer.pem"
+etcd_peer_key_file: "{{ etcd_certs_dir }}/etcd-peer-key.pem"
+
+# ETCD client CA/CERT
+etcd_client_cert_filename: "etcd-client.pem"
+etcd_client_key_filename: "etcd-client-key.pem"
+etcd_client_csr_json_filename: "etcd-clinet-csr.json"
+etcd_client_csr_filename: "etcd-client.csr"
+
+etcd_client_cert_file: "{{ etcd_certs_dir }}/etcd-client.pem"
+etcd_client_key_file: "{{ etcd_certs_dir }}/etcd-client-key.pem"
+
+
+#####    etcd cert options
+etcd_client_cert_auth: "true"
+etcd_peer_client_cert_auth: "true"
+
+#####    etcd ports
+etcd_client_port: 2379
+etcd_peer_port: 2380
+
+#####    etcd cluster/node option
+etcd_initial_cluster_state: new
+etcd_initial_cluster_token: etcd-k8s-cluster
+
+####     etcd urls
+etcd_initial_advertise_peer_urls: "https://{{ etcd_machine_address }}:{{ etcd_peer_port }}"
+etcd_listen_peer_urls: "https://{{ etcd_machine_address }}:{{ etcd_peer_port }}"
+etcd_advertise_client_urls: "https://{{ etcd_machine_address }}:{{ etcd_client_port }}"
+etcd_listen_client_urls: "https://{{ etcd_machine_address }}:2379,https://127.0.0.1:2379"
+
+
+###############################################################################################
+# variables for kubenetes
+##############################################################################################
+
+# kube directory
+kube_conf_dir: "/etc/kubernetes"
+kube_cert_dir: "{{ kube_conf_dir }}/pki"
+
+
+####    kubenetes cert files
+
+# KUBE CA
+kube_ca_cert_filename: "ca.pem"
+kube_ca_key_filename:  "ca-key.pem"
+
+kube_ca_cert_file: "{{ kube_cert_dir }}/ca.pem"
+kube_ca_key_file:  "{{ kube_cert_dir }}/ca-key.pem"
+#
+kube_ca_config_json_filename: "ca-config.json"
+kube_ca_csr_json_filename:    "ca-csr.json"
+kube_ca_csr_filename:         "ca.csr"
+
+# KUBE apiserver CERT
+kube_apiserver_cert_filename: "apiserver.pem"
+kube_apiserver_key_filename:  "apiserver-key.pem"
+
+kube_apiserver_cert_file: "{{ kube_cert_dir }}/apiserver.pem"
+kube_apiserver_key_file:  "{{ kube_cert_dir }}/apiserver-key.pem"
+#
+kube_apiserver_csr_json_filename: "apiserver-csr.json"
+kube_apiserver_csr_filename:      "apiserver.csr"
+
+
+# KUBE admin CERT
+kube_admin_cert_filename: "admin.pem"
+kube_admin_key_filename:  "admin-key.pem"
+
+kube_admin_cert_file: "{{ kube_cert_dir }}/admin.pem"
+kube_admin_key_file:  "{{ kube_cert_dir }}/admin-key.pem"
+#
+kube_admin_csr_json_filename: "admin-csr.json"
+kube_admin_csr_filename:      "admin.csr"
+
+# KUBE controller-manager CERT
+kube_controller_manager_cert_filename: "controller-manager.pem"
+kube_controller_manager_key_filename:  "controller-manager-key.pem"
+
+kube_controller_manager_cert_file: "{{ kube_cert_dir }}/controller-manager.pem"
+kube_controller_manager_key_file:  "{{ kube_cert_dir }}/controller-manager-key.pem"
+#
+kube_controller_manager_csr_json_filename: "controller-manager-csr.json"
+kube_controller_manager_csr_filename:      "controller-manager.csr"
+
+# KUBE scheduler CERT
+kube_scheduler_cert_filename: "scheduler.pem"
+kube_scheduler_key_filename:  "scheduler-key.pem"
+
+kube_scheduler_cert_file: "{{ kube_cert_dir }}/scheduler.pem"
+kube_scheduler_key_file:  "{{ kube_cert_dir }}/scheduler-key.pem"
+#
+kube_scheduler_csr_json_filename: "scheduler-csr.json"
+kube_scheduler_csr_filename:      "scheduler.csr"
+
+##############################################################################################
