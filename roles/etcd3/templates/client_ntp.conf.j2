@@ -26,7 +26,7 @@ restrict ::1
 #restrict 192.168.1.0 mask 255.255.255.0 nomodify notrap
 
 # - add local restrict (master ntp server - node1) - disable master to access client
-#restrict 192.168.126.101
+#restrict 192.168.100.101
 restrict {{ ntp_master_node_address() }}
 
 # mask out all public ntp server for all client ntp server (client ntp use master ntp server of cluster)
@@ -38,7 +38,7 @@ restrict {{ ntp_master_node_address() }}
 #server 3.centos.pool.ntp.org iburst
 
 # enable master ntp server for all client ntp server nodes
-#server 192.168.126.101
+#server 192.168.100.101
 server {{ ntp_master_node_address() }}
 
 #broadcast 192.168.1.255 autokey	# broadcast server

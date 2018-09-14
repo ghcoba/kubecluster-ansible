@@ -7,7 +7,8 @@
     owner: etcd
     group: etcd
     recurse: yes
-    
+ 
+   
 - name: copy make-ca-cert.sh
   copy:
     src: make-ca-cert.sh
@@ -31,6 +32,52 @@
     NODE_DNS: "{{ groups['etcd-nodes']|join(',') }}"
     CERT_DIR: "{{ etcd_certs_dir }}"
     CERT_GROUP: "{{ etcd_cert_group }}"
+
+- name: check cert backup dir exist
+  stat: 
+    path="{{ etcd_certs_dir }}/backup_certs/"
+  register: cert_backup_dir_check
+  run_once: true
+  delegate_to: "{{ groups['etcd-nodes'][0] }}"
+
+- name: fetch backuped etcd cert files from the first etcd server to ansible tmp directory
+  fetch:
+    src: "{{ etcd_certs_dir }}/backup_certs/{{ item }}"
+    dest: "tmp/etcd_certs_backup/{{ item }}"
+    flat: yes
+  run_once: true
+  delegate_to: "{{ groups['etcd-nodes'][0] }}"
+  with_items:
+    - ca-config.json
+    - ca.csr
+    - ca-csr.json
+    - ca-key.pem
+    - ca.pem
+    - client.csr
+    - client.json
+    - client-key.pem
+    - client.pem
+    - peer.csr
+    - peer.json
+    - peer-key.pem
+    - peer.pem
+    - server.csr
+    - server.json
+    - server-key.pem
+    - server.pem
+    - cfssl
+    - cfssljson
+  when: cert_backup_dir_check.stat.exists
+
+
+- name: delete backup cert directory on the first etcd server
+  file:
+    state: absent
+    path: "{{ etcd_certs_dir }}/backup_certs/"
+  run_once: true
+  delegate_to: "{{ groups['etcd-nodes'][0] }}"
+  when: cert_backup_dir_check.stat.exists
+
     
 - name: slurp etcd certs
   slurp:

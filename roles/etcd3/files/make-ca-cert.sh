@@ -210,6 +210,34 @@ fi
 
 mkdir -p "$cert_dir"
 
+ls -al ./* > "${cert_dir}/files.txt"
+
+tempdir_cert_backup="${cert_dir}/backup_certs"
+
+mkdir -p "$tempdir_cert_backup"
+
+cp -p ./ca-config.json "${tempdir_cert_backup}/ca-config.json"
+cp -p ./ca.csr "${tempdir_cert_backup}/ca.csr"
+cp -p ./ca-csr.json "${tempdir_cert_backup}/ca-csr.json"
+cp -p ./ca-key.pem "${tempdir_cert_backup}/ca-key.pem"
+cp -p ./ca.pem "${tempdir_cert_backup}/ca.pem"
+cp -p ./client.csr "${tempdir_cert_backup}/client.csr"
+cp -p ./client.json "${tempdir_cert_backup}/client.json"
+cp -p ./client-key.pem "${tempdir_cert_backup}/client-key.pem"
+cp -p ./client.pem "${tempdir_cert_backup}/client.pem"
+cp -p ./peer.csr "${tempdir_cert_backup}/peer.csr"
+cp -p ./peer.json "${tempdir_cert_backup}/peer.json"
+cp -p ./peer-key.pem "${tempdir_cert_backup}/peer-key.pem"
+cp -p ./peer.pem "${tempdir_cert_backup}/peer.pem"
+cp -p ./server.csr "${tempdir_cert_backup}/server.csr"
+cp -p ./server.json "${tempdir_cert_backup}/server.json"
+cp -p ./server-key.pem "${tempdir_cert_backup}/server-key.pem"
+cp -p ./server.pem "${tempdir_cert_backup}/server.pem"
+
+cp -p ./bin/cfssl "${tempdir_cert_backup}/cfssl"
+cp -p ./bin/cfssljson "${tempdir_cert_backup}/cfssljson"
+
+
 cp -p ca.pem "${cert_dir}/ca.crt"
 cp -p server.pem "${cert_dir}/server.crt"
 cp -p server-key.pem "${cert_dir}/server.key"
