@@ -1,0 +1,8 @@
+---
+
+- hosts: cluster
+  become: yes
+  roles:
+    - role: prep
+  tags:
+    - prep

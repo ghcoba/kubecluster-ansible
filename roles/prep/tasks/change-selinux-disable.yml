@@ -1,0 +1,13 @@
+---
+
+# change config file to set SELINUX=enforcing (enforcing - enable)
+- name: config disable selinux
+  lineinfile: 
+    path: /etc/selinux/config
+    regexp: '^SELINUX='
+    line: 'SELINUX=enforcing'
+
+# disable selinux using selinux module (disable temporarily, not permanently)
+- name: diable selinux
+  selinux: 
+    state: disabled

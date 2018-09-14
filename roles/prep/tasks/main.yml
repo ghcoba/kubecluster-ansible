@@ -1,0 +1,10 @@
+---
+
+- name: change bridge L2packet to network filter Enable 
+  import_tasks: change-bridge-l2packet-nf.yml
+
+- name: change SELINUX disable temporarily
+  import_tasks: change-selinux-disable.yml
+
+- name: change filter FORWARD chain for pod networks
+  import_tasks: change-forward-chain.yml
