@@ -8,3 +8,6 @@
 
 - name: change filter FORWARD chain for pod networks
   import_tasks: change-forward-chain.yml
+
+- name: change swap off for all cluster nodes
+  import_tasks: change-swapoff.yml

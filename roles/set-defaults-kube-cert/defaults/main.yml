@@ -1,0 +1,47 @@
+---
+
+# cert directory
+kube_cert_dir: "/etc/kubernetes/pki"
+
+
+# cert files
+
+kube_ca_cert_file: "ca.pem"
+kube_ca_key_file:  "ca-key.pem"
+#
+kube_ca_config_json_file: "ca-config.json"
+kube_ca_csr_json_file:    "ca-csr.json"
+kube_ca_csr_file:         "ca.csr"
+
+
+
+kube_apiserver_cert_file: "apiserver.pem"
+kube_apiserver_key_file:  "apiserver-key.pem"
+#
+kube_apiserver_csr_json_file: "apiserver-csr.json"
+kube_apiserver_csr_file:      "apiserver.csr"
+
+
+
+kube_admin_cert_file: "admin.pem"
+kube_admin_key_file:  "admin-key.pem"
+#
+kube_admin_csr_json_file: "admin-csr.json"
+kube_admin_csr_file:      "admin.csr"
+
+
+
+kube_controller_manager_cert_file: "controller-manager.pem"
+kube_controller_manager_key_file:  "controller-manager-key.pem"
+#
+kube_controller_manager_csr_json_file: "controller-manager-csr.json"
+kube_controller_manager_csr_file:      "controller-manager.csr"
+
+
+
+kube_scheduler_cert_file: "scheduler.pem"
+kube_scheduler_key_file:  "scheduler-key.pem"
+#
+kube_scheduler_csr_json_file: "scheduler-csr.json"
+kube_scheduler_csr_file:      "scheduler.csr"
+
