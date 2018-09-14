@@ -1,8 +1,0 @@
----
-
-# for docker v 1.13 up
-- name: config iptables filter FORWARD chain for pod networks
-  iptables: 
-    table: filter
-    chain: FORWARD
-    policy: ACCEPT
