@@ -1,5 +1,22 @@
 ---
 
+##############################################################################################
+# variables for generate certs
+##############################################################################################
+
+# tmp backup for ansible
+ansible_deploy_tmp_dir: "tmp"
+ansible_tmp_master_ca_backup_dir: "{{ ansible_deploy_tmp_dir }}/master_ca_backup"
+ansible_tmp_etcd_certs_backup_dir: "{{ ansible_deploy_tmp_dir }}/etcd_certs_backup"
+ansible_tmp_kube_certs_backup_dir: "{{ ansible_deploy_tmp_dir }}/kube_certs_backup
+
+# tmp config directory for mater ca (on first master node)
+tmp_master_ca_config_dir: "/etc/tmp_master_ca_config"
+tmp_etcd_cert_config_dir: "/etc/tmp_etcd_cert_config"
+tmp_kube_cert_config_dir: "/etc/tmp_kube_cert_config"
+
+tmp_cert_config_group: root
+
 ###############################################################################################
 # variables for etcd
 ###############################################################################################
@@ -17,21 +34,26 @@ etcd_certs_dir: "{{ etcd_conf_dir }}/ssl"
 
 etcd_cert_group: root
 
+
+
 #####    etcd cert files
 
 # ETCD SERVER CA
 etcd_ca_filename: "etcd-ca.pem"
-etcd_cert_filename: "etcd-server.pem"
-etcd_key_filename: "etcd-server-key.pem"
-etcd_ca_config_json_filename: "etcd-ca-config.json"
-etcd_ca_csr_json_filename: "etcd-ca-csr.json"
-etcd_ca_csr_filename: "etcd-ca.csr"
+etcd_server_cert_filename: "etcd-server.pem"
+etcd_server_key_filename: "etcd-server-key.pem"
+
+#etcd_ca_config_json_filename: "etcd-ca-config.json"
+etcd_server_csr_json_filename: "etcd-server-csr.json"
+etcd_server_csr_filename: "etcd-server.csr"
 
 etcd_ca_file: "{{ etcd_certs_dir }}/etcd-ca.pem"
 etcd_cert_file: "{{ etcd_certs_dir }}/etcd-server.pem"
 etcd_key_file: "{{ etcd_certs_dir }}/etcd-server-key.pem"
 
-# ETCD peer CA/CERT
+
+
+# ETCD peer CA/CERT/KEY
 etcd_peer_ca_filename: "etcd-ca.pem"
 etcd_peer_cert_filename: "etcd-peer.pem"
 etcd_peer_key_filename: "etcd-peer-key.pem"
@@ -42,7 +64,9 @@ etcd_peer_ca_file: "{{ etcd_certs_dir }}/etcd-ca.pem"
 etcd_peer_cert_file: "{{ etcd_certs_dir }}/etcd-peer.pem"
 etcd_peer_key_file: "{{ etcd_certs_dir }}/etcd-peer-key.pem"
 
-# ETCD client CA/CERT
+
+
+# ETCD client CERT/KEY
 etcd_client_cert_filename: "etcd-client.pem"
 etcd_client_key_filename: "etcd-client-key.pem"
 etcd_client_csr_json_filename: "etcd-clinet-csr.json"
@@ -50,6 +74,7 @@ etcd_client_csr_filename: "etcd-client.csr"
 
 etcd_client_cert_file: "{{ etcd_certs_dir }}/etcd-client.pem"
 etcd_client_key_file: "{{ etcd_certs_dir }}/etcd-client-key.pem"
+
 
 
 #####    etcd cert options
@@ -79,10 +104,11 @@ etcd_listen_client_urls: "https://{{ etcd_machine_address }}:2379,https://127.0.
 kube_conf_dir: "/etc/kubernetes"
 kube_cert_dir: "{{ kube_conf_dir }}/pki"
 
+kube_cert_group: root
 
 ####    kubenetes cert files
 
-# KUBE CA
+# KUBE CA - it is used as master ca for both KUBE and ETCD
 kube_ca_cert_filename: "ca.pem"
 kube_ca_key_filename:  "ca-key.pem"
 

@@ -13,6 +13,9 @@ node1
 node2
 node3
 
+[load-balancer]
+lb-node
+
 [kube-nodes]
 node4
 node5

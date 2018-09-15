@@ -1,5 +1,18 @@
 ---
 
+
+- name: ensure tmp etcd certs config directory
+  file:
+    path: "{{ tmp_etcd_cert_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    recurse: yes
+  register: tmp_etcd_cert_config_dir_check
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+
 - name: ensure etcd certs directory
   file:
     path: "{{ etcd_certs_dir }}"
@@ -7,104 +20,139 @@
     owner: etcd
     group: etcd
     recurse: yes
- 
+  when: inventory_hostname in groups['etcd-nodes']
    
 - name: copy make-ca-cert.sh
   copy:
-    src: make-ca-cert.sh
-    dest: "{{ etcd_certs_dir }}"
+    src: make-etcd-ca-cert.sh
+    dest: "{{ tmp_etcd_cert_config_dir }}"
     owner: root
     group: root
     mode: "0500"
   run_once: true
-  delegate_to: "{{ groups['etcd-nodes'][0] }}"
+  delegate_to: "{{ groups['kube-masters'][0] }}"
   
   
-- name: gen certs on the first etcd server
+- name: gen certs on the first master server node
   command:
-    "{{ etcd_certs_dir }}/make-ca-cert.sh"
+    "{{ tmp_etcd_cert_config_dir }}/make-etcd-ca-cert.sh"
   args:
-    creates: "{{ etcd_certs_dir }}/server.crt"
+    creates: "{{ tmp_etcd_cert_config_dir }}/server.crt"
   run_once: true
-  delegate_to: "{{ groups['etcd-nodes'][0] }}"
+  delegate_to: "{{ groups['kube-masters'][0] }}"
   environment:
     NODE_IPS: "{% for host in groups['etcd-nodes'] %}{{ hostvars[host]['etcd_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
     NODE_DNS: "{{ groups['etcd-nodes']|join(',') }}"
-    CERT_DIR: "{{ etcd_certs_dir }}"
+    CERT_DIR: "{{ tmp_etcd_cert_config_dir }}"
+    MASTER_CA_DIR: "{{ tmp_master_ca_config_dir }}"
     CERT_GROUP: "{{ etcd_cert_group }}"
 
-- name: check cert backup dir exist
-  stat: 
-    path="{{ etcd_certs_dir }}/backup_certs/"
-  register: cert_backup_dir_check
-  run_once: true
-  delegate_to: "{{ groups['etcd-nodes'][0] }}"
+#- name: check cert backup dir exist
+#  stat: 
+#    path="{{ etcd_certs_dir }}/backup_certs/"
+#  register: cert_backup_dir_check
+#  run_once: true
+#  delegate_to: "{{ groups['etcd-nodes'][0] }}"
 
-- name: fetch backuped etcd cert files from the first etcd server to ansible tmp directory
+- name: fetch backuped etcd cert files from the first master server node to ansible tmp directory
   fetch:
-    src: "{{ etcd_certs_dir }}/backup_certs/{{ item }}"
-    dest: "tmp/etcd_certs_backup/{{ item }}"
+    src: "{{ tmp_etcd_cert_config_dir }}/{{ item }}"
+    dest: "{{ ansible_tmp_etcd_certs_backup_dir }}/{{ item }}"
     flat: yes
   run_once: true
-  delegate_to: "{{ groups['etcd-nodes'][0] }}"
+  delegate_to: "{{ groups['kube-masters'][0] }}"
   with_items:
-    - ca-config.json
-    - ca.csr
-    - ca-csr.json
-    - ca-key.pem
-    - ca.pem
-    - client.csr
-    - client.json
-    - client-key.pem
-    - client.pem
-    - peer.csr
-    - peer.json
-    - peer-key.pem
-    - peer.pem
-    - server.csr
-    - server.json
-    - server-key.pem
-    - server.pem
-    - cfssl
-    - cfssljson
-  when: cert_backup_dir_check.stat.exists
+    - "{{ etcd_server_cert_filename }}
+    - "{{ etcd_server_key_filename }}"
+    - "{{ etcd_server_csr_json_filename }}"
+    - "{{ etcd_server_csr_filename }}"
+    - "{{ etcd_peer_cert_filename }}"
+    - "{{ etcd_peer_key_filename }}"
+    - "{{ etcd_peer_csr_json_filename }}"
+    - "{{ etcd_peer_csr_filename }}"
+    - "{{ etcd_client_cert_filename }}"
+    - "{{ etcd_client_key_filename }}"
+    - "{{ etcd_client_csr_json_filename }}"
+    - "{{ etcd_client_csr_filename }}"
+  when: tmp_etcd_cert_config_dir_check
+
+#  with_items:
+#    - ca-config.json
+#    - ca.csr
+#    - ca-csr.json
+#    - ca-key.pem
+#    - ca.pem
+#    - client.csr
+#    - client.json
+#    - client-key.pem
+#    - client.pem
+#    - peer.csr
+#    - peer.json
+#    - peer-key.pem
+#    - peer.pem
+#    - server.csr
+#    - server.json
+#    - server-key.pem
+#    - server.pem
+#    - cfssl
+#    - cfssljson
+#  when: cert_backup_dir_check.stat.exists
 
 
-- name: delete backup cert directory on the first etcd server
-  file:
-    state: absent
-    path: "{{ etcd_certs_dir }}/backup_certs/"
-  run_once: true
-  delegate_to: "{{ groups['etcd-nodes'][0] }}"
-  when: cert_backup_dir_check.stat.exists
+#- name: delete backup cert directory on the first etcd server
+#  file:
+#    state: absent
+#    path: "{{ etcd_certs_dir }}/backup_certs/"
+#  run_once: true
+#  delegate_to: "{{ groups['etcd-nodes'][0] }}"
+#  when: cert_backup_dir_check.stat.exists
 
     
-- name: slurp etcd certs
-  slurp:
-    src: "{{ item }}"
-  register: pki_certs
-  run_once: true
-  delegate_to: "{{ groups['etcd-nodes'][0] }}"
-  with_items:
-    - "{{ etcd_ca_file }}"
-    - "{{ etcd_cert_file }}"
-    - "{{ etcd_key_file }}"
-    - "{{ etcd_peer_ca_file }}"
-    - "{{ etcd_peer_cert_file }}"
-    - "{{ etcd_peer_key_file }}"
-    - "{{ etcd_client_cert_file }}"
-    - "{{ etcd_client_key_file }}"
+#- name: slurp etcd certs
+#  slurp:
+#    src: "{{ tmp_etcd_cert_config_dir }}/{{ item }}"
+#  register: etcd_pki_certs
+#  run_once: true
+#  delegate_to: "{{ groups['kube-masters'][0] }}"
+#  with_items:
+#    - "{{ etcd_ca_filename }}"
+#    - "{{ etcd_server_cert_filename }}"
+#    - "{{ etcd_server_key_filename }}"
+#    - "{{ etcd_peer_ca_filename }}"
+#    - "{{ etcd_peer_cert_filename }}"
+#    - "{{ etcd_peer_key_filename }}"
+#    - "{{ etcd_client_cert_filename }}"
+#    - "{{ etcd_client_key_filename }}"
+
     
-- name: copy etcd certs to other etcd servers
+#- name: copy etcd certs to other etcd servers
+#  copy:
+#    dest: "{{ item.item }}"
+#    content: "{{ item.content | b64decode }}"
+#    owner: etcd
+#    group: "{{ etcd_cert_group }}"
+#    mode: 0640
+#  with_items: "{{ etcd_pki_certs.results }}"
+#  when: inventory_hostname in groups['etcd-nodes']
+ 
+-name: copy ansible tmp backup certs to all etcd server nodes
   copy:
-    dest: "{{ item.item }}"
-    content: "{{ item.content | b64decode }}"
-    owner: etcd
+    dest: "{{ etcd_certs_dir }}/{{ item }}"
+    src:  "{{ ansible_tmp_etcd_certs_backup_dir }}/{{ item }}"
+    owner: "{{ etcd_cert_group }}"
     group: "{{ etcd_cert_group }}"
-    mode: 0640
-  with_items: "{{ pki_certs.results }}"
-  when: inventory_hostname != groups['etcd-nodes'][0]
+  with_items:
+    - "{{ etcd_ca_filename }}"
+    - "{{ etcd_server_cert_filename }}"
+    - "{{ etcd_server_key_filename }}"
+    - "{{ etcd_peer_ca_filename }}"
+    - "{{ etcd_peer_cert_filename }}"
+    - "{{ etcd_peer_key_filename }}"
+    - "{{ etcd_client_cert_filename }}"
+    - "{{ etcd_client_key_filename }}"    
+  when: inventory_hostname in groups['etcd-nodes']
   
+ 
 - name: ensure etcd certs perm
   file:
     path: "{{ item }}"
@@ -113,10 +161,11 @@
     mode: 0640
   with_items:
     - "{{ etcd_ca_file }}"
-    - "{{ etcd_cert_file }}"
-    - "{{ etcd_key_file }}"
+    - "{{ etcd_server_cert_file }}"
+    - "{{ etcd_server_key_file }}"
     - "{{ etcd_peer_ca_file }}"
     - "{{ etcd_peer_cert_file }}"
     - "{{ etcd_peer_key_file }}"
     - "{{ etcd_client_cert_file }}"
     - "{{ etcd_client_key_file }}"
+  when: inventory_hostname in groups['etcd-nodes']
