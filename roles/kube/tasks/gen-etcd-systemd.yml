@@ -4,6 +4,8 @@
   template: 
     src: etcd.service.j2
     dest: /etc/systemd/system/etcd.service
+  when: inventory_hostname in groups['etcd-nodes']
+  
     
 - name: create etcd env conf
   template: 
@@ -12,4 +14,4 @@
     owner: etcd
     group: etcd
     mode: 0540
-    
+  when: inventory_hostname in groups['etcd-nodes']    

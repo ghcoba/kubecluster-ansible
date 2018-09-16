@@ -5,3 +5,4 @@
     name: etcd
     state: stopped
     enabled: no
+  when: inventory_hostname in groups['etcd-nodes']

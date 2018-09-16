@@ -3,3 +3,4 @@
   systemd:
     name: etcd
     state: restarted
+  when: inventory_hostname in groups['etcd-nodes']

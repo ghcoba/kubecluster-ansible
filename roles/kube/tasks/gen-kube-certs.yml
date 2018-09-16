@@ -1,122 +1,157 @@
 ---
 
-- name: ensure etcd certs directory
+# file: roles/kube/tasks/gen-kube-certs.yml
+# . create tmp kube cert config directory for cert gen  on first node of kube masters
+# . create kube cert directory on all all nodes of kube masters
+# . copy cert gen shell script
+# . run cert gen shell script (: copy master ca/ca-key etc to tmp config directory, gen cert)
+# . copy certs generated into ansible tmp storeage
+# . copy certs crom ansible tmp storage to all nodes of kube masters
+#
+
+# remove tmp kube cert config directory if exist
+- name: remove tmp kube certs config directory
   file:
-    path: "{{ etcd_certs_dir }}"
+    path: "{{ tmp_kube_certs_config_dir }}"
+    state: absent
+
+# create tmp config directory for kube cert on first kube master node
+- name: ensure tmp kube certs config directory
+  file:
+    path: "{{ tmp_kube_certs_config_dir }}"
     state: directory
-    owner: etcd
-    group: etcd
+    force: yes
+    mode: 01777
+    owner: root
+    group: root
     recurse: yes
- 
-   
-- name: copy make-ca-cert.sh
+  register: tmp_kube_certs_config_dir_check
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+
+# create kub cert dirctory on all node in kube cluster masters
+- name: ensure kube certs directory
+  file:
+    path: "{{ kube_certs_dir }}"
+    state: directory
+    force: yes
+    owner: root
+    group: root
+    recurse: yes
+  when: inventory_hostname in groups['kube-masters']
+
+
+# copy make kube cert script to tmp kube config directory on first kub master node   
+- name: copy make-kube-ca-cert.sh
   copy:
-    src: make-ca-cert.sh
-    dest: "{{ etcd_certs_dir }}"
+    src: make-kube-ca-cert.sh
+    dest: "{{ tmp_kube_certs_config_dir }}"
     owner: root
     group: root
     mode: "0500"
   run_once: true
-  delegate_to: "{{ groups['etcd-nodes'][0] }}"
+  delegate_to: "{{ groups['kube-masters'][0] }}"
   
-  
-- name: gen certs on the first etcd server
+
+# run make script to create cert on tmp kube config directory of first kube master node
+# (rem: script need copy master ca/ca-key from MASTER_CA_DIR to tmp kube cert config directory first,
+#       as kube and etcd will use a common ca/ca-key to generate other certs)
+- name: gen certs on the first master server node
   command:
-    "{{ etcd_certs_dir }}/make-ca-cert.sh"
+    "{{ tmp_kube_certs_config_dir }}/make-kube-ca-cert.sh"
   args:
-    creates: "{{ etcd_certs_dir }}/server.crt"
+    creates: "{{ tmp_kube_certs_config_dir }}/server.crt"
   run_once: true
-  delegate_to: "{{ groups['etcd-nodes'][0] }}"
+  delegate_to: "{{ groups['kube-masters'][0] }}"
   environment:
-    NODE_IPS: "{% for host in groups['etcd-nodes'] %}{{ hostvars[host]['etcd_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
-    NODE_DNS: "{{ groups['etcd-nodes']|join(',') }}"
-    CERT_DIR: "{{ etcd_certs_dir }}"
-    CERT_GROUP: "{{ etcd_cert_group }}"
+    NODE_IPS: "{% for host in groups['kube-masters'] %}{{ hostvars[host]['kube_masters_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+    NODE_DNS: "{{ groups['kube-masters']|join(',') }}"
+    CERT_DIR: "{{ tmp_kube_certs_config_dir }}"
+    MASTER_CA_DIR: "{{ tmp_master_ca_config_dir }}"
+    CERT_GROUP: "{{ kube_cert_group }}"
+    LOAD_BALANCER_IP: "{% for host in groups['load-balancer'] %}{{ hostvars[host]['load_balancer_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+    APISERVER_SERVICE_CLUSTER_IP: "{{ apiserver_service_cluster_ip }}"
 
-- name: check cert backup dir exist
-  stat: 
-    path="{{ etcd_certs_dir }}/backup_certs/"
-  register: cert_backup_dir_check
-  run_once: true
-  delegate_to: "{{ groups['etcd-nodes'][0] }}"
+#- name: check cert backup dir exist
+#  stat: 
+#    path="{{ etcd_certs_dir }}/backup_certs/"
+#  register: cert_backup_dir_check
+#  run_once: true
+#  delegate_to: "{{ groups['etcd-nodes'][0] }}"
 
-- name: fetch backuped etcd cert files from the first etcd server to ansible tmp directory
+
+# backup cert files from tmp kube cert config directory to ansible tmp cert backup directory
+# (cert, csr and json files)
+- name: fetch backuped kube cert files from the first master server node to ansible tmp directory
   fetch:
-    src: "{{ etcd_certs_dir }}/backup_certs/{{ item }}"
-    dest: "tmp/etcd_certs_backup/{{ item }}"
+    src: "{{ tmp_kube_certs_config_dir }}/{{ item }}"
+    dest: "{{ ansible_tmp_kube_certs_backup_dir }}/{{ item }}"
     flat: yes
   run_once: true
-  delegate_to: "{{ groups['etcd-nodes'][0] }}"
+  delegate_to: "{{ groups['kube-masters'][0] }}"
   with_items:
-    - ca-config.json
-    - ca.csr
-    - ca-csr.json
-    - ca-key.pem
-    - ca.pem
-    - client.csr
-    - client.json
-    - client-key.pem
-    - client.pem
-    - peer.csr
-    - peer.json
-    - peer-key.pem
-    - peer.pem
-    - server.csr
-    - server.json
-    - server-key.pem
-    - server.pem
-    - cfssl
-    - cfssljson
-  when: cert_backup_dir_check.stat.exists
+    - "{{ kube_ca_filename }}"
+    - "{{ kube_ca_key_filename }}"
+    - "{{ kube_ca_config_json_filename }}"
+    - "{{ kube_ca_csr_json_filename }}"
+    - "{{ kube_ca_csr_filename }}"
+    - "{{ kube_apiserver_cert_filename }}"
+    - "{{ kube_apiserver_key_filename }}"
+    - "{{ kube_apiserver_json_filename }}"
+    - "{{ kube_apiserver_csr_filename }}"
+    - "{{ kube_admin_cert_filename }}"
+    - "{{ kube_admin_key_filename }}"
+    - "{{ kube_admin_json_filename }}"
+    - "{{ kube_admin_csr_filename }}"
+    - "{{ kube_controller_manager_cert_filename }}"
+    - "{{ kube_controller_manager_key_filename }}"
+    - "{{ kube_controller_manager_json_filename }}"
+    - "{{ kube_controller_manager_csr_filename }}"
+    - "{{ kube_scheduler_cert_filename }}"
+    - "{{ kube_scheduler_key_filename }}"
+    - "{{ kube_scheduler_json_filename }}"
+    - "{{ kube_scheduler_csr_filename }}"
+  when: tmp_kube_certs_config_dir_check
 
 
-- name: delete backup cert directory on the first etcd server
-  file:
-    state: absent
-    path: "{{ etcd_certs_dir }}/backup_certs/"
-  run_once: true
-  delegate_to: "{{ groups['etcd-nodes'][0] }}"
-  when: cert_backup_dir_check.stat.exists
-
-    
-- name: slurp etcd certs
-  slurp:
-    src: "{{ item }}"
-  register: pki_certs
-  run_once: true
-  delegate_to: "{{ groups['etcd-nodes'][0] }}"
-  with_items:
-    - "{{ etcd_ca_file }}"
-    - "{{ etcd_cert_file }}"
-    - "{{ etcd_key_file }}"
-    - "{{ etcd_peer_ca_file }}"
-    - "{{ etcd_peer_cert_file }}"
-    - "{{ etcd_peer_key_file }}"
-    - "{{ etcd_client_cert_file }}"
-    - "{{ etcd_client_key_file }}"
-    
-- name: copy etcd certs to other etcd servers
+# copy kube ca and cert files from ansible tmp backup directory to all master nodes of kube cluster 
+- name: copy ansible tmp backup certs to all kube master server nodes
   copy:
-    dest: "{{ item.item }}"
-    content: "{{ item.content | b64decode }}"
-    owner: etcd
-    group: "{{ etcd_cert_group }}"
-    mode: 0640
-  with_items: "{{ pki_certs.results }}"
-  when: inventory_hostname != groups['etcd-nodes'][0]
+    dest: "{{ kube_certs_dir }}/{{ item }}"
+    src:  "{{ ansible_tmp_kube_certs_backup_dir }}/{{ item }}"
+    owner: "{{ kube_cert_group }}"
+    group: "{{ kube_cert_group }}"
+  with_items:
+    - "{{ kube_ca_filename }}"
+    - "{{ kube_ca_key_filename }}"
+    - "{{ kube_apiserver_cert_filename }}"
+    - "{{ kube_apiserver_key_filename }}"
+    - "{{ kube_admin_cert_filename }}"
+    - "{{ kube_admin_key_filename }}"
+    - "{{ kube_controller_manager_cert_filename }}"
+    - "{{ kube_controller_manager_key_filename }}"
+    - "{{ kube_scheduler_cert_filename }}"
+    - "{{ kube_scheduler_key_filename }}"   
+  when: inventory_hostname in groups['kube-masters']
   
+
+# change owner of ca and cert files on all nodes of etcd cluster 
 - name: ensure etcd certs perm
   file:
     path: "{{ item }}"
     state: file
-    owner: etcd
+    owner: root
     mode: 0640
   with_items:
     - "{{ etcd_ca_file }}"
-    - "{{ etcd_cert_file }}"
-    - "{{ etcd_key_file }}"
-    - "{{ etcd_peer_ca_file }}"
-    - "{{ etcd_peer_cert_file }}"
-    - "{{ etcd_peer_key_file }}"
-    - "{{ etcd_client_cert_file }}"
-    - "{{ etcd_client_key_file }}"
+    - "{{ kube_ca_key_file }}"
+    - "{{ kube_apiserver_cert_file }}"
+    - "{{ kube_apiserver_key_file }}"
+    - "{{ kube_admin_cert_file }}"
+    - "{{ kube_admin_key_file }}"
+    - "{{ kube_controller_manager_cert_file }}"
+    - "{{ kube_controller_manager_key_file }}"
+    - "{{ kube_scheduler_cert_file }}"
+    - "{{ kube_scheduler_key_file }}"
+  when: inventory_hostname in groups['kube-masters']

@@ -1,0 +1,13 @@
+---
+
+- hosts: cluster
+  become: yes
+  roles:
+    - role: kube
+  environment:
+    http_proxy: http://10.0.0.9:30080
+    https_proxy: http://10.0.0.9:30080
+
+  tags:
+    - kube
+

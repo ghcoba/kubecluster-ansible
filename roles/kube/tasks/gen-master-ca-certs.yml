@@ -6,20 +6,34 @@
 # ATTENTION:
 #   1. kube and etcd will use this ca cert as root ca cert
 #   2. this task must executed before generating kube ca cert and generating etcd ca cert
-#   3. this storage will be deleted after we have finished creation of kuber and etcd cert
+#   3. this storage will be deleted after we have finished creation of kuber and etcd cert bu
+#        calling post proceessing for cert generation
 #
 
+# remove tmp master ca config directory if exist
+- name: remove tmp master ca config directory is exist
+  file:
+    path: "{{ tmp_master_ca_config_dir }}"
+    state: absent
 
-# ensure tmp master ca config directory exist on first node of masters group
-- name: ensure master ca config directory on first master node
+# create tmp master ca config directory  on first node of masters group
+- name: create master ca config directory on first master node
   file:
     path: "{{ tmp_master_ca_config_dir }}"
     state: directory
+    force: yes
+    mode: 01777
     owner: root
     group: root
+  register: tmp_master_ca_config_dir_exist_check
   run_once: true
   delegate_to: "{{ groups['kube-masters'][0] }}"
 
+# ensure tmp master ca config directory exist
+#- fail: msg="{{ tmp_master_ca_config_dir }} not exist."
+#  when: tmp_master_ca_config_dir_exist_check.stat.exists == False  
+#  run_once: true
+#  delegate_to: "{{ groups['kube-masters'][0] }}"
 
 # copy make-master-ca-cert.sh to first master node
 - name: copy make-master-ca-cert.sh
@@ -58,41 +72,21 @@
 
 
 # fetch master ca cert from tmp master ca config directory on first master node 
-# and store to ansible tmp backup directory as backup for check
+#   and store to ansible tmp backup directory as backup for check
 - name: fetch master ca cert files from the first etcd server to ansible tmp directory
   fetch:
-    src: "{{ tmp_master_ca_config_dir/{{ item }}"
-    dest: "{{ ansible_tmp_master_ca_backup_dir  }}/{{ item }}"
+    src: "{{ tmp_master_ca_config_dir }}/{{ item }}"
+    dest: "{{ ansible_tmp_master_ca_backup_dir }}/{{ item }}"
     flat: yes
   run_once: true
   delegate_to: "{{ groups['kube-masters'][0] }}"
   with_items:
-    - "{{ kube_ca_cert_filename }}"
+    - "{{ kube_ca_filename }}"
     - "{{ kube_ca_key_filename }}"
     - "{{ kube_ca_config_json_filename }}"
     - "{{ kube_ca_csr_json_filename }}"
     - "{{ kube_ca_csr_filename }}"
+    - cfssl
+    - cfssljson
   when: tmp_master_ca_config_dir_check
-
-
-#####################
-#    - ca-config.json
-#    - ca.csr
-#    - ca-csr.json
-#    - ca-key.pem
-#    - ca.pem
-#    - client.csr
-#    - client.json
-#    - client-key.pem
-#    - client.pem
-#    - peer.csr
-#    - peer.json
-#    - peer-key.pem
-#    - peer.pem
-#    - server.csr
-#    - server.json
-#    - server-key.pem
-#    - server.pem
-#    - cfssl
-#    - cfssljson
 

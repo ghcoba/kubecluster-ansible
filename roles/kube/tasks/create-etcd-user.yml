@@ -4,6 +4,8 @@
   group:
     name: etcd
     state: present
+  when: inventory_hostname in groups['etcd-nodes']
+
 
 - name: create system etcd user
   user:
@@ -14,6 +16,8 @@
     system: yes
     home: "{{ etcd_data_dir }}"
     groups: etcd
+  when: inventory_hostname in groups['etcd-nodes']
+
 
 - name: ensure etcd_data_dir exists
   file:
@@ -22,4 +26,4 @@
     state: directory
     owner: etcd
     group: etcd
-
+  when: inventory_hostname in groups['etcd-nodes']

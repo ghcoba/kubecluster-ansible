@@ -1,12 +1,12 @@
 ---
 
-
 - name: check whether etcd release tar downloaded on the first etcd server 
   stat: 
     path: "{{ ansible_temp_dir }}/{{ etcd_release}}.tar.gz"
   register: etcd_release_download_check
   delegate_to: "{{ groups['etcd-nodes'][0] }}"
   run_once: true    
+
 
 - name: download etcd release tar file on first the etcd server 
   get_url:
@@ -58,4 +58,4 @@
   with_items:
     - etcd
     - etcdctl
-    
+  when: inventory_hostname in groups['etcd-nodes']    

@@ -1,0 +1,15 @@
+---
+
+- hosts: cluster
+  become: yes
+  roles:
+    - role: system-prep
+  tags:
+    - system-prep
+
+- hosts: cluster
+  become: yes
+  roles:
+    - role: kube
+  tags:
+    - kube

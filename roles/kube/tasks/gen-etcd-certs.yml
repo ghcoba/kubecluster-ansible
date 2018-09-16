@@ -1,18 +1,27 @@
 ---
 
+# remove tmp etcd cert config directory if exist
+- name: remove tmp etcd certs config directory
+  file:
+    path: "{{ tmp_etcd_certs_config_dir }}"
+    state: absent
 
+# create tmp config directory for etcd cert on first kube master node
 - name: ensure tmp etcd certs config directory
   file:
-    path: "{{ tmp_etcd_cert_config_dir }}"
+    path: "{{ tmp_etcd_certs_config_dir }}"
     state: directory
+    force: yes
+    mode: 01777
     owner: root
     group: root
     recurse: yes
-  register: tmp_etcd_cert_config_dir_check
+  register: tmp_etcd_certs_config_dir_check
   run_once: true
   delegate_to: "{{ groups['kube-masters'][0] }}"
 
 
+# create etcd cert dirctory on all node in etcd cluster
 - name: ensure etcd certs directory
   file:
     path: "{{ etcd_certs_dir }}"
@@ -21,29 +30,34 @@
     group: etcd
     recurse: yes
   when: inventory_hostname in groups['etcd-nodes']
-   
-- name: copy make-ca-cert.sh
+
+
+# copy make etcd cert script to tmp etcd config directory on first kub master node   
+- name: copy make-etcd-ca-cert.sh
   copy:
     src: make-etcd-ca-cert.sh
-    dest: "{{ tmp_etcd_cert_config_dir }}"
+    dest: "{{ tmp_etcd_certs_config_dir }}"
     owner: root
     group: root
     mode: "0500"
   run_once: true
   delegate_to: "{{ groups['kube-masters'][0] }}"
   
-  
+
+# run make script to create cert on tmp etcd config directory of first kube master node
+# (rem: script need copy master ca/ca-key from MASTER_CA_DIR to tmp etcd cert config directory first,
+#       as kube and etcd will use a common ca/ca-key to generate other certs)
 - name: gen certs on the first master server node
   command:
-    "{{ tmp_etcd_cert_config_dir }}/make-etcd-ca-cert.sh"
+    "{{ tmp_etcd_certs_config_dir }}/make-etcd-ca-cert.sh"
   args:
-    creates: "{{ tmp_etcd_cert_config_dir }}/server.crt"
+    creates: "{{ tmp_etcd_certs_config_dir }}/server.crt"
   run_once: true
   delegate_to: "{{ groups['kube-masters'][0] }}"
   environment:
     NODE_IPS: "{% for host in groups['etcd-nodes'] %}{{ hostvars[host]['etcd_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
     NODE_DNS: "{{ groups['etcd-nodes']|join(',') }}"
-    CERT_DIR: "{{ tmp_etcd_cert_config_dir }}"
+    CERT_DIR: "{{ tmp_etcd_certs_config_dir }}"
     MASTER_CA_DIR: "{{ tmp_master_ca_config_dir }}"
     CERT_GROUP: "{{ etcd_cert_group }}"
 
@@ -54,27 +68,35 @@
 #  run_once: true
 #  delegate_to: "{{ groups['etcd-nodes'][0] }}"
 
+
+# backup cert files from tmp etcd cert config directory to ansible tmp cert backup directory
+# (cert, csr and json files)
 - name: fetch backuped etcd cert files from the first master server node to ansible tmp directory
   fetch:
-    src: "{{ tmp_etcd_cert_config_dir }}/{{ item }}"
+    src: "{{ tmp_etcd_certs_config_dir }}/{{ item }}"
     dest: "{{ ansible_tmp_etcd_certs_backup_dir }}/{{ item }}"
     flat: yes
   run_once: true
   delegate_to: "{{ groups['kube-masters'][0] }}"
   with_items:
-    - "{{ etcd_server_cert_filename }}
+    - "{{ etcd_ca_filename }}"
+    - "{{ etcd_ca_key_filename }}"
+    - "{{ etcd_ca_config_json_filename }}"
+    - "{{ etcd_ca_csr_json_filename }}"
+    - "{{ etcd_ca_csr_filename }}"
+    - "{{ etcd_server_cert_filename }}"
     - "{{ etcd_server_key_filename }}"
-    - "{{ etcd_server_csr_json_filename }}"
+    - "{{ etcd_server_json_filename }}"
     - "{{ etcd_server_csr_filename }}"
     - "{{ etcd_peer_cert_filename }}"
     - "{{ etcd_peer_key_filename }}"
-    - "{{ etcd_peer_csr_json_filename }}"
+    - "{{ etcd_peer_json_filename }}"
     - "{{ etcd_peer_csr_filename }}"
     - "{{ etcd_client_cert_filename }}"
     - "{{ etcd_client_key_filename }}"
-    - "{{ etcd_client_csr_json_filename }}"
+    - "{{ etcd_client_json_filename }}"
     - "{{ etcd_client_csr_filename }}"
-  when: tmp_etcd_cert_config_dir_check
+  when: tmp_etcd_certs_config_dir_check
 
 #  with_items:
 #    - ca-config.json
@@ -110,7 +132,7 @@
     
 #- name: slurp etcd certs
 #  slurp:
-#    src: "{{ tmp_etcd_cert_config_dir }}/{{ item }}"
+#    src: "{{ tmp_etcd_certs_config_dir }}/{{ item }}"
 #  register: etcd_pki_certs
 #  run_once: true
 #  delegate_to: "{{ groups['kube-masters'][0] }}"
@@ -134,8 +156,10 @@
 #    mode: 0640
 #  with_items: "{{ etcd_pki_certs.results }}"
 #  when: inventory_hostname in groups['etcd-nodes']
- 
--name: copy ansible tmp backup certs to all etcd server nodes
+
+
+# copy etcd ca and cert files from ansible tmp backup directory to all nodes of etcd cluster 
+- name: copy ansible tmp backup certs to all etcd server nodes
   copy:
     dest: "{{ etcd_certs_dir }}/{{ item }}"
     src:  "{{ ansible_tmp_etcd_certs_backup_dir }}/{{ item }}"
@@ -143,16 +167,18 @@
     group: "{{ etcd_cert_group }}"
   with_items:
     - "{{ etcd_ca_filename }}"
+    - "{{ etcd_ca_key_filename }}"
     - "{{ etcd_server_cert_filename }}"
     - "{{ etcd_server_key_filename }}"
-    - "{{ etcd_peer_ca_filename }}"
+#    - "{{ etcd_peer_ca_filename }}"
     - "{{ etcd_peer_cert_filename }}"
     - "{{ etcd_peer_key_filename }}"
     - "{{ etcd_client_cert_filename }}"
     - "{{ etcd_client_key_filename }}"    
   when: inventory_hostname in groups['etcd-nodes']
   
- 
+
+# change owner of ca and cert files on all nodes of etcd cluster 
 - name: ensure etcd certs perm
   file:
     path: "{{ item }}"
@@ -161,9 +187,10 @@
     mode: 0640
   with_items:
     - "{{ etcd_ca_file }}"
+    - "{{ etcd_ca_key_file }}"
     - "{{ etcd_server_cert_file }}"
     - "{{ etcd_server_key_file }}"
-    - "{{ etcd_peer_ca_file }}"
+#    - "{{ etcd_peer_ca_file }}"
     - "{{ etcd_peer_cert_file }}"
     - "{{ etcd_peer_key_file }}"
     - "{{ etcd_client_cert_file }}"
