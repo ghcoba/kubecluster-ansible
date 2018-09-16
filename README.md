@@ -20,7 +20,7 @@ A ansible script to installs kube cluster on CentOS 7
 modify inventories, then
 
 ```
-ansible-playbook -i inventories/dev/hosts deploy-kebe-cluster.yml
+ansible-playbook -i inventories/dev/hosts deploy-kube-cluster.yml
 ```
 
 check .txt for detailed intro
