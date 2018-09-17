@@ -3,38 +3,38 @@
 ###### etcd cluster
 
 # create etcd user and data dir
-- name: create etcd user and data dir
+- name: STARTING role - kube - main TASK.    create etcd user and data dir
   import_tasks: create-etcd-user.yml
 # download and install etcd binary files  
-- name: download and install etcd bin
+- name: ROLE kubd TASK main sub install-etcd-bin TASK.  download and install etcd bin
   import_tasks: install-etcd-bin.yml
 
 ##### create ca/ert for etcd and kube
 
 # generate master ca/cert  
-- name: generate master ca/cert
+- name: ROLE kube TASK main sub gen-maskter-ca-certs TASK.  generate master ca/cert
   import_tasks: gen-master-ca-certs.yml
 # generate etcd certs (server, client, peer cert)
-- name: generate etcd certs
+- name: ROLE kube TASK main sub gen-etcd-certs TASK.   generate etcd certs
   import_tasks: gen-etcd-certs.yml
 # generate kubernetes certs (admin, apiserver, controller-manager, scheduler)
-- name: gen kube certs
+- name: ROLE kube TASK main sub gen-kube-certs TASK.   gen kube certs
   import_tasks: gen-kube-certs.yml
 
 ##### config and restart etcd cluster  
-- name: generate etcd systemd and config
+- name: ROLE kube task main sub gen-etcd-systemd TASK.  generate etcd systemd and config
   import_tasks: gen-etcd-systemd.yml
 # setup single node time sync source for etcd cluster
-- name: change ntp config to single time src and restart ntp
+- name: ROLE kube task main sub change-ntp-config TASK.  change ntp config to single time src and restart ntp
   import_tasks: change-ntp-config.yml
 # change firewall and port setting for etcd and ntp
-- name: change firewall config to enable port 2370 2380 ntp and reload rules
+- name: ROLE kube task main sub change-firewall-config TASK.  change firewall config to enable port 2370 2380 ntp and reload rules
   import_tasks: change-firewall-config.yml
 # start etcd service  
-- name: start etcd
+- name: ROLE kube task main sub etcd-start TASK.  start etcd
   import_tasks: etcd-start.yml
 # restart etcd cluster to make all configuration take effect  
-- name: restart etcd
+- name: ROLE kube task main sub etcd-restart TASK.   restart etcd
   import_tasks: etcd-restart.yml
 
 ########

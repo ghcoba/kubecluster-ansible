@@ -1,6 +1,6 @@
 ---
 
-- name: stop etcd
+- name: STARTING etcd-stop TASK.    stop etcd
   systemd:
     name: etcd
     state: stopped

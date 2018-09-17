@@ -1,6 +1,6 @@
 ---
 
-- name: start etcd
+- name: STARTING etcd-start TASK.    start etcd
   systemd:
     name: etcd
     daemon_reload: yes

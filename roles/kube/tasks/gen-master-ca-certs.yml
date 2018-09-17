@@ -10,11 +10,14 @@
 #        calling post proceessing for cert generation
 #
 
-# remove tmp master ca config directory if exist
-- name: remove tmp master ca config directory is exist
+# remove tmp master ca config directory (on first node of masters) if exist
+- name: STARTING gen-master-ca-certs TASK. remove tmp master ca config directory on first node of masters if exist
   file:
     path: "{{ tmp_master_ca_config_dir }}"
     state: absent
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
 
 # create tmp master ca config directory  on first node of masters group
 - name: create master ca config directory on first master node

@@ -1,6 +1,6 @@
 ---
 
-- name: create system etcd group
+- name: STARTING create-etcd-user TASK.  create system etcd group
   group:
     name: etcd
     state: present

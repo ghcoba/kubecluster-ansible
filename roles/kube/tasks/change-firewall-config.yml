@@ -1,17 +1,20 @@
 ---
 
-- name: change firewalll to enable port 2379
+- name: STARTING change-firewall-config TASK.  change firewalll to enable port 2379 for all etcd cluster nodes
   command: "firewall-cmd --zone=public --add-port=2379/tcp --permanent"
+  when: inventory_hostname in groups['etcd-nodes']
 
-- name: change firewalll to enable port 2380
+- name: change firewalll to enable port 2380 for all etcd cluster nodes
   command: "firewall-cmd --zone=public --add-port=2380/tcp --permanent"
+  when: inventory_hostname in groups['etcd-nodes']
 
-- name: change firewalll to enable port 4001
+- name: change firewalll to enable port 4001 for all etcd cluster nodes
   command: "firewall-cmd --zone=public --add-port=4001/tcp --permanent"
+  when: inventory_hostname in groups['etcd-nodes']
 
-- name: change firewalll to enable ntp service port
+- name: change firewalll to enable ntp service port for all node of cluster
   command: "firewall-cmd --add-service=ntp --permanent"
 
 
-- name: reload firewall to take effect
+- name: reload firewall to take effect for all cluster nodes
   command: "firewall-cmd --reload"

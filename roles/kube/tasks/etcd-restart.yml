@@ -1,5 +1,5 @@
 ---
-- name: restart etcd
+- name: STARTING etcd-restart TASK.    restart etcd
   systemd:
     name: etcd
     state: restarted

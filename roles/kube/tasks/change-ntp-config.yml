@@ -1,17 +1,18 @@
 ---
 
-- name: create ntp config for all nodes
+- name: STARTING change-ntp-config TASK. create ntp config for all nodes
   template:
     src: client_ntp.conf.j2
     dest: /etc/ntp.conf
 
-- name: create ntp config for master node
+- name: create specific ntp config for master ntp node
   template:
     src: master_ntp.conf.j2
     dest: /etc/ntp.conf
+  run_once: true
   delegate_to: "{{ groups['ntp-master-node'][0] }}"
 
-- name: restart ntpd
+- name: restart ntpd of all node of cluster
   systemd:
     name: ntpd
     state: restarted

@@ -1,6 +1,6 @@
 ---
 
-- name: check whether etcd release tar downloaded on the first etcd server 
+- name: STARTING install-etcd-bin TASK.   check whether etcd release tar downloaded on the first etcd server 
   stat: 
     path: "{{ ansible_temp_dir }}/{{ etcd_release}}.tar.gz"
   register: etcd_release_download_check

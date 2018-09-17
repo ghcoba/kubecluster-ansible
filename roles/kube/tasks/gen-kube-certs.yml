@@ -9,14 +9,16 @@
 # . copy certs crom ansible tmp storage to all nodes of kube masters
 #
 
-# remove tmp kube cert config directory if exist
-- name: remove tmp kube certs config directory
+# remove tmp kube cert config directory on first node of masters if exist
+- name: STARTING gen-kuber-certs TASK. remove tmp kube certs config directory on first node of masters if exist
   file:
     path: "{{ tmp_kube_certs_config_dir }}"
     state: absent
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
 
 # create tmp config directory for kube cert on first kube master node
-- name: ensure tmp kube certs config directory
+- name: crate and ensure tmp kube certs config directory on first node of masters 
   file:
     path: "{{ tmp_kube_certs_config_dir }}"
     state: directory
@@ -43,7 +45,7 @@
 
 
 # copy make kube cert script to tmp kube config directory on first kub master node   
-- name: copy make-kube-ca-cert.sh
+- name: copy make-kube-ca-cert.sh to first node of kube masters
   copy:
     src: make-kube-ca-cert.sh
     dest: "{{ tmp_kube_certs_config_dir }}"
@@ -57,7 +59,7 @@
 # run make script to create cert on tmp kube config directory of first kube master node
 # (rem: script need copy master ca/ca-key from MASTER_CA_DIR to tmp kube cert config directory first,
 #       as kube and etcd will use a common ca/ca-key to generate other certs)
-- name: gen certs on the first master server node
+- name: gen certs on the first master server node - certs generate are admin, apiserver, controller-manager, scheduler certs
   command:
     "{{ tmp_kube_certs_config_dir }}/make-kube-ca-cert.sh"
   args:
@@ -137,7 +139,7 @@
   
 
 # change owner of ca and cert files on all nodes of etcd cluster 
-- name: ensure etcd certs perm
+- name: change and ensure etcd certs permission of certs of each node of kube masters
   file:
     path: "{{ item }}"
     state: file
