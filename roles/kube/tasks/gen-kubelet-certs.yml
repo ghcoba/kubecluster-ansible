@@ -1,0 +1,161 @@
+---
+
+# file: roles/kube/tasks/gen-kubelet-certs.yml
+# . create tmp kubelet cert config directory for cert gen  on each work nodes (group: kube-nodes)
+# . create kubelet cert directory on all all nodes of kube node
+# . copy cert gen shell script
+# . run cert gen shell script (: copy master ca/ca-key etc to tmp config directory, gen cert)
+# . copy certs generated into ansible tmp backup storeage
+# . copy certs from ansible tmp storage to all work nodes of kube node 
+#       (each node has specific cert from other nodes)
+#
+
+# remove tmp kubelet cert config directory on each node of kube-nodes
+- name: STARTING gen-kubelet-certs TASK. remove tmp kube certs config directory if exist on each work node
+  file:
+    path: "{{ tmp_kubelet_certs_config_dir }}"
+    state: absent
+  when: inventory_hostname in groups['kube-nodes']
+
+# create tmp config directory for kubelet cert on wach work node
+- name: create and ensure tmp kubelet certs config directory on each work node 
+  file:
+    path: "{{ tmp_kubelet_certs_config_dir }}"
+    state: directory
+    force: yes
+    mode: 01777
+    owner: root
+    group: root
+    recurse: yes
+  register: tmp_kubelet_certs_config_dir_check
+  when: inventory_hostname in groups['kube-nodes']
+
+
+# create kubelet cert dirctory on each work node
+- name: ensure kubelet certs directory
+  file:
+    path: "{{ kubelet_certs_dir }}"
+    state: directory
+    force: yes
+    owner: root
+    group: root
+    recurse: yes
+  when: inventory_hostname in groups['kube-nodes']
+
+
+# copy make-kubelet-cert script to tmp kube config directory of each work node   
+- name: copy make-kubelet-cert.sh to each kube-nodes
+  copy:
+    src: make-kubelet-cert.sh
+    dest: "{{ tmp_kubelet_certs_config_dir }}"
+    owner: root
+    group: root
+    mode: "0500"
+  when: inventory_hostname in groups['kube-nodes']
+
+
+# copy kube master ca and cert files from ansible tmp backup directory to tmp config directory
+- name: copy ansible tmp backup master certs to tmp config directory
+  copy:
+    dest: "{{ tmp_kubelet_certs_config_dir }}/{{ item }}"
+    src:  "{{ ansible_tmp_master_ca_backup_dir }}/{{ item }}"
+    owner: "{{ tmp_cert_config_group }}"
+    group: "{{ tmp_cert_config_group }}"
+  with_items:
+    - "{{ kube_ca_filename }}"
+    - "{{ kube_ca_key_filename }}"
+    - "{{ kube_ca_config_json_filename }}"
+    - "{{ kube_ca_csr_json_filename }}"
+    - "{{ kube_ca_csr_filename }}" 
+    - cfssl
+    - cfssljson
+   when: inventory_hostname in groups['kube-nodes']
+
+
+
+# run make-kubelet-cert script to create cert on tmp kubelet config directory
+# (rem: script need copy master ca/ca-key from MASTER_CA_DIR to tmp kube cert config directory first,
+#       as kube, etcd, kubelet, kube-proxy will use a common ca/ca-key to generate other certs)
+
+# before exec:
+#   1. make-kubelet-cert.sh copied to tmp config directory
+#   2. master ca cert files copied to tmp config directory
+#   3. cfssl and cfssljson utilities copied to tmp config directory
+#   
+#   4. NODE_NAME as env vairalbe set for creation of cert user name ("CN" zone)
+#   5. CERT_DIR as env variable set for shell to copy generated cert to this storage for work system
+#   6. TMP_CERT_CONFIG_DIR as env variable set for shell to locate tmp work directory 
+
+- name: gen kubelet certs on the each kube-nodes - certs generated is kubelet
+  command:
+    "{{ tmp_kubelet_certs_config_dir }}/make-kubelet-cert.sh"
+  args:
+    creates: "{{ tmp_kubelet_certs_config_dir }}/server.crt"
+  environment:
+    NODE_IPS: "{% for host in groups['kube-nodes'] %}{{ hostvars[host]['kube_nodes_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+    NODE_NAME: "{{ inventory_hostname }}"
+    NODE_DNS: "{{ groups['kube-nodes']|join(',') }}"
+    CERT_DIR: "{{ kubelet_certs_dir }}"    
+    TMP_CERT_CONFIG_DIR: "{{ tmp_kubelet_certs_config_dir }}"
+  when: inventory_hostname in groups['kube-nodes']
+
+
+# backup cert files from tmp kubelet cert config directory to ansible tmp cert backup directory
+# (cert, csr and json files)
+- name: fetch generated kubelet cert files from the work node to ansible tmp directory
+  fetch:
+    src: "{{ tmp_kubelet_certs_config_dir }}/{{ item }}"
+    dest: "{{ ansible_tmp_kubelet_certs_backup_dir }}/{{ inventory_hostname }}/{{ item }}"
+    flat: yes
+  with_items:
+#    - "{{ kube_ca_filename }}"
+#    - "{{ kube_ca_key_filename }}"
+#    - "{{ kube_ca_config_json_filename }}"
+#    - "{{ kube_ca_csr_json_filename }}"
+#    - "{{ kube_ca_csr_filename }}"
+    - "{{ kube_kubelet_cert_filename }}"
+    - "{{ kube_kubelet_key_filename }}"
+    - "{{ kube_kubelet_json_filename }}"
+    - "{{ kube_kubelet_csr_filename }}"
+  when: inventory_hostname in groups['kube-nodes']
+
+
+# copy master ca file from ansible tmp backup directory to work node
+- name: copy master ca file from ansible tmp backup to work node
+  copy:
+    dest: "{{ kubelet_certs_dir }}/{{ item }}"
+    src:  "{{ ansible_tmp_master_ca_backup_dir }}/{{ item }}"
+    owner: "{{ kubelet_cert_group }}"
+    group: "{{ kubelet_cert_group }}"
+  with_items:
+    - "{{ kube_ca_filename }}"
+  when: inventory_hostname in groups['kube-nodes']
+
+
+# copy kubelet cert files from ansible tmp backup directory to work node 
+- name: copy ansible tmp backup kubelet certs to work node
+  copy:
+    dest: "{{ kubelet_certs_dir }}/{{ item }}"
+    src:  "{{ ansible_tmp_kubelet_certs_backup_dir }}/{{ item }}"
+    owner: "{{ kubelet_cert_group }}"
+    group: "{{ kubelet_cert_group }}"
+  with_items:
+    - "{{ kube_kubelet_cert_filename }}"
+    - "{{ kube_kubelet_key_filename }}"   
+  when: inventory_hostname in groups['kube-nodes']
+  
+
+# change owner of ca and cert files on all nodes of etcd cluster 
+- name: change and ensure kubelet certs permission of certs of each node of kube masters
+  file:
+    path: "{{ item }}"
+    state: file
+#    owner: {{ kubelet_cert_group }}
+    owner: root
+    mode: 0640
+  with_items:
+    - "{{ kube_ca_file }}"
+    - "{{ kube_kubelet_cert_file }}"
+    - "{{ kube_kubelet_file }}"
+  when: inventory_hostname in groups['kube-nodes']
+

@@ -1,18 +1,36 @@
 ---
 
+#######################################################################################################
+# tmp backup directory variables
+# tmp backup directory position: (ansible deploy dir kubecluster-ansible/) ./tmp/
+
+
 # ansible deploy tmp directory to store downloaded and generated data
 ansible_deploy_tmp_dir: tmp
 ansible_tmp_master_ca_backup_dir: "{{ ansible_deploy_tmp_dir }}/master_ca_backup"
 ansible_tmp_etcd_certs_backup_dir: "{{ ansible_deploy_tmp_dir }}/etcd_certs_backup"
 ansible_tmp_kube_certs_backup_dir: "{{ ansible_deploy_tmp_dir }}/kube_certs_backup"
+# each kubelet has its own specific cert for every work nodes
+ansible_tmp_kubelet_certs_backup_dir: "{{ ansible_deploy_tmp_dir }}/kubelet_certs_backup"
+ansible_tmp_kube_proxy_certs_backup_dir: "{{ ansible_deploy_tmp_dir }}/kube_proxy_certs_backup"
+
 
 # tmp ca and cert config directory to generate and store ca/cert data: master ca, etcd cert, kube cert 
 tmp_master_ca_config_dir: "/etc/tmp_master_ca_config"
 tmp_etcd_certs_config_dir: "/etc/tmp_etcd_certs_config"
 tmp_kube_certs_config_dir: "/etc/tmp_kube_certs_config"
+# as kubelet nodes have specific cert for each work node, tmp config directory is created at each node,
+# other tmp config dir is created at first node of cluster masters node
+tmp_kubelet_certs_config_dir: "/etc/tmp_kubelet_certs_config"
+tmp_kube_proxy_certs_config_dir: "/etc/tmp_kube_proxy_certs_config"
+
 
 # group for tmp cert config directory
 tmp_cert_config_group: root
+
+########################################################################################################
+# etcd variables
+
 
 # etcd version and download url
 etcd_version: 3.3.9
@@ -161,5 +179,62 @@ kube_scheduler_csr_filename:      "scheduler.csr"
 apiserver_service_cluster_ip: "10.96.0.1"
 apiserver_service_cluster_ip_range: "10.96.0.0/12"
 
-#
+#########################################################################################
+# kubelet variables
 
+# kubelet binary, data, config, certs directory definition
+kubelet_bin_path: /usr/local/bin
+kubelet_data_dir: /var/lib/kubelet
+
+pod_manifest_path: "{{ kube_conf_dir }}/manifests"
+
+kubelet_conf_dir: "{{ kube_conf_dir }}/kubelet"
+kubelet_certs_dir: "{{ kube_conf_dir }}/pki"
+
+#kubelet_user: root
+kubelet_user: kubelet
+#kubelet_group: root
+kubelet_group: kubelet
+
+kubelet_cert_group: root
+#kubelet_cert_group: kubelet
+
+# kubelet certs
+kube_kubelet_cert_filename: "kubelet.pem"
+kube_kubelet_key_filename:  "kubelet-key.pem"
+
+kube_kubelet_cert_file: "{{ kubelet_certs_dir }}/kubelet.pem"
+kube_kubelet_key_file:  "{{ kubelet_certs_dir }}/kubelet-key.pem"
+kube_kubelet_json_filename: "kubelet.json"
+kube_kubelet_csr_filename:  "kubelet.csr"
+
+
+
+
+
+#########################################################################################
+# kube-proxy variables
+
+# kube-proxy binary, data, config, certs directory definition
+kube_proxy_bin_path: /usr/local/bin
+kube_proxy_data_dir: /var/lib/kube-proxy
+
+kube_proxy_conf_dir: "{{ kube_conf_dir }}/kube-proxy"
+kube_proxy_certs_dir: "{{ kube_conf_dir }}/pki"
+
+#kube_proxy_user: root
+kube_proxy_user: kube-proxy
+#kube_proxy_group: root
+kube_proxy_group: kube-proxy
+
+#kube_proxy_cert_group: root
+kube_proxy_cert_group: kube-proxy
+
+# kube-proxy certs
+kube_kube_proxy_cert_filename: "kube-proxy.pem"
+kube_kube_proxy_key_filename:  "kube-proxy-key.pem"
+
+kube_kube_proxy_cert_file: "{{ kube_proxy_certs_dir }}/kube-proxy.pem"
+kube_kube_proxy_key_file:  "{{ kube_proxy_certs_dir }}/kube-proxy-key.pem"
+kube_kube_proxy_json_filename: "kubelet.json"
+kube_kube_proxy_csr_filename:  "kubelet.csr"
