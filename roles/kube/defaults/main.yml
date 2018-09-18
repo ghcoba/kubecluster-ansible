@@ -209,9 +209,6 @@ kube_kubelet_json_filename: "kubelet.json"
 kube_kubelet_csr_filename:  "kubelet.csr"
 
 
-
-
-
 #########################################################################################
 # kube-proxy variables
 
