@@ -4,28 +4,28 @@
 
 - name: STARTING create-kubelet-user TASK.  create system kubelet group in work nodes
   group:
-    name: {{ kubelet_group ""
+    name: "{{ kubelet_group }}"
     state: present
   when: inventory_hostname in groups['kube-nodes']
 
 
 - name: create system kubelet user
   user:
-    name: {{ kubelet_user }}
+    name: "{{ kubelet_user }}"
     comment: "kubelet node user"
     shell: /sbin/nologin
     state: present
     system: yes
     home: "{{ kubelet_data_dir }}"
-    groups: {{ kubelet_group }}
+    groups: "{{ kubelet_group }}"
   when: inventory_hostname in groups['kube-nodes']
 
 
-- name: ensure kubelet_data_dir exists
+- name: create and ensure kubelet_data_dir exists
   file:
     path: "{{ kubelet_data_dir }}"
     recurse: yes
     state: directory
-    owner: {{ kubelet_user }}
-    group: {{ kubelet_group }}
+    owner: "{{ kubelet_user }}"
+    group: "{{ kubelet_group }}"
   when: inventory_hostname in groups['kube-nodes']

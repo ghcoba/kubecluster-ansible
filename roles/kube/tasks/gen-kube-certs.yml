@@ -45,9 +45,9 @@
 
 
 # copy make kube cert script to tmp kube config directory on first kub master node   
-- name: copy make-kube-ca-cert.sh to first node of kube masters
+- name: copy make-kube-cert.sh to first node of kube masters
   copy:
-    src: make-kube-ca-cert.sh
+    src: make-kube-cert.sh
     dest: "{{ tmp_kube_certs_config_dir }}"
     owner: root
     group: root
@@ -61,7 +61,7 @@
 #       as kube and etcd will use a common ca/ca-key to generate other certs)
 - name: gen certs on the first master server node - certs generate are admin, apiserver, controller-manager, scheduler certs
   command:
-    "{{ tmp_kube_certs_config_dir }}/make-kube-ca-cert.sh"
+    "{{ tmp_kube_certs_config_dir }}/make-kube-cert.sh"
   args:
     creates: "{{ tmp_kube_certs_config_dir }}/server.crt"
   run_once: true

@@ -4,28 +4,28 @@
 
 - name: STARTING create-kube-proxy-user TASK.  create system kube-proxy group in work nodes
   group:
-    name: {{ kube_proxy_group ""
+    name: "{{ kube_proxy_group }}"
     state: present
   when: inventory_hostname in groups['kube-nodes']
 
 
-- name: create system kubelet user
+- name: create system kube-proxy user
   user:
-    name: {{ kube_proxy_user }}
+    name: "{{ kube_proxy_user }}"
     comment: "kube-proxy node user"
     shell: /sbin/nologin
     state: present
     system: yes
     home: "{{ kube_proxy_data_dir }}"
-    groups: {{ kube_proxy_group }}
+    groups: "{{ kube_proxy_group }}"
   when: inventory_hostname in groups['kube-nodes']
 
 
-- name: ensure kubelet_data_dir exists
+- name: create and ensure kube_proxy_data_dir exists
   file:
     path: "{{ kube_proxy_data_dir }}"
     recurse: yes
     state: directory
-    owner: {{ kube_proxy_user }}
-    group: {{ kube_proxy_group }}
+    owner: "{{ kube_proxy_user }}"
+    group: "{{ kube_proxy_group }}"
   when: inventory_hostname in groups['kube-nodes']

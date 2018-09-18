@@ -90,12 +90,13 @@
 
 - name: gen kube-proxy certs on the first kube-nodes - certs generated is kube-proxy
   command:
-    "{{ tmp_kube_proxy_certs_config_dir }}/make-kube_proxy-cert.sh"
+    "{{ tmp_kube_proxy_certs_config_dir }}/make-kube-proxy-cert.sh"
   args:
     creates: "{{ tmp_kube_proxy_certs_config_dir }}/server.crt"
   environment:
     NODE_IPS: "{% for host in groups['kube-nodes'] %}{{ hostvars[host]['kube_nodes_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
-    NODE_NAME: inventory_hostname
+#    NODE_NAME: inventory_hostname
+    CERT_GROUP: "{{ kube_proxy_group }}"
     NODE_DNS: "{{ groups['kube-nodes']|join(',') }}"
     CERT_DIR: "{{ kube_proxy_certs_dir }}"    
     TMP_CERT_CONFIG_DIR: "{{ tmp_kube_proxy_certs_config_dir }}"

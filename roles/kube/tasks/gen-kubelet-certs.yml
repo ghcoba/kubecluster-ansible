@@ -69,9 +69,13 @@
     - "{{ kube_ca_csr_filename }}" 
     - cfssl
     - cfssljson
-   when: inventory_hostname in groups['kube-nodes']
+  when: inventory_hostname in groups['kube-nodes']
 
-
+# get hostname
+- name: get hostname
+  command: hostname
+  register: hostname_current
+  when: inventory_hostname in groups['kube-nodes']
 
 # run make-kubelet-cert script to create cert on tmp kubelet config directory
 # (rem: script need copy master ca/ca-key from MASTER_CA_DIR to tmp kube cert config directory first,
@@ -93,8 +97,9 @@
     creates: "{{ tmp_kubelet_certs_config_dir }}/server.crt"
   environment:
     NODE_IPS: "{% for host in groups['kube-nodes'] %}{{ hostvars[host]['kube_nodes_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
-    NODE_NAME: "{{ inventory_hostname }}"
+    NODE_NAME: "{{ hostname_current }}"
     NODE_DNS: "{{ groups['kube-nodes']|join(',') }}"
+    CERT_GROUP: "{{ kubelet_group }}"
     CERT_DIR: "{{ kubelet_certs_dir }}"    
     TMP_CERT_CONFIG_DIR: "{{ tmp_kubelet_certs_config_dir }}"
   when: inventory_hostname in groups['kube-nodes']

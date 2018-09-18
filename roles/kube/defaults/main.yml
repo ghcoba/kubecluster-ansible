@@ -236,5 +236,5 @@ kube_kube_proxy_key_filename:  "kube-proxy-key.pem"
 
 kube_kube_proxy_cert_file: "{{ kube_proxy_certs_dir }}/kube-proxy.pem"
 kube_kube_proxy_key_file:  "{{ kube_proxy_certs_dir }}/kube-proxy-key.pem"
-kube_kube_proxy_json_filename: "kubelet.json"
-kube_kube_proxy_csr_filename:  "kubelet.csr"
+kube_kube_proxy_json_filename: "kube-proxy.json"
+kube_kube_proxy_csr_filename:  "kube-proxy.csr"

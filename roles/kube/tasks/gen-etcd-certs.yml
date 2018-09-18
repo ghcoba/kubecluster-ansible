@@ -35,9 +35,9 @@
 
 
 # copy make etcd cert script to tmp etcd config directory on first kub master node   
-- name: copy make-etcd-ca-cert.sh to first node of masters
+- name: copy make-etcd-cert.sh to first node of masters
   copy:
-    src: make-etcd-ca-cert.sh
+    src: make-etcd-cert.sh
     dest: "{{ tmp_etcd_certs_config_dir }}"
     owner: root
     group: root
@@ -51,7 +51,7 @@
 #       as kube and etcd will use a common ca/ca-key to generate other certs)
 - name: gen certs on the first master server node - include certs of etcd-server etcd-client and etcd-peer
   command:
-    "{{ tmp_etcd_certs_config_dir }}/make-etcd-ca-cert.sh"
+    "{{ tmp_etcd_certs_config_dir }}/make-etcd-cert.sh"
   args:
     creates: "{{ tmp_etcd_certs_config_dir }}/server.crt"
   run_once: true
