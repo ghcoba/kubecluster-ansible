@@ -1,0 +1,67 @@
+---
+
+# not yet finished
+
+- name: STARTING create-kube-user TASK.  create system kube group in work mster nodes
+  group:
+    name: "{{ kube_group }}"
+    state: present
+  when: inventory_hostname in groups['kube-masters']
+
+
+- name: create system kube user
+  user:
+    name: "{{ kube_user }}"
+    comment: "kube master node user"
+    shell: /sbin/nologin
+    state: present
+    system: yes
+    home: "{{ kube_home_dir }}"
+    groups: "{{ kube_group }}"
+  when: inventory_hostname in groups['kube-masters']
+
+
+- name: create and ensure kube_data_dir exists
+  file:
+    path: "{{ kube_data_dir }}"
+    recurse: yes
+    state: directory
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+  when: inventory_hostname in groups['kube-masters']
+
+- name: create and ensure kube_bin__dir exists
+  file:
+    path: "{{ kube_bin_dir }}"
+    recurse: yes
+    state: directory
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+  when: inventory_hostname in groups['kube-masters']
+
+- name: create and ensure kube_home_dir exists
+  file:
+    path: "{{ kube_home_dir }}"
+    recurse: yes
+    state: directory
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+  when: inventory_hostname in groups['kube-masters']
+
+- name: create and ensure kube_conf_dir exists
+  file:
+    path: "{{ kube_conf_dir }}"
+    recurse: yes
+    state: directory
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+  when: inventory_hostname in groups['kube-masters']
+
+- name: create and ensure kube_certs_dir exists
+  file:
+    path: "{{ kube_certs_dir }}"
+    recurse: yes
+    state: directory
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+  when: inventory_hostname in groups['kube-masters']

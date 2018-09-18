@@ -1,56 +1,92 @@
 ---
 
-###### etcd cluster
+######     CREATE USER AND DIRECTORIES
 
 # create etcd user and data dir
 - name: STARTING role - kube - main TASK.    create etcd user and data dir
   import_tasks: create-etcd-user.yml
-# download and install etcd binary files  
-- name: ROLE kubd TASK main sub install-etcd-bin TASK.  download and install etcd bin
-  import_tasks: install-etcd-bin.yml
 
-##### create ca/cert for etcd and kube masters (kube admin, apiserver, controller-manager, scheduler certs)
+# create kube user and dir
+- name: ROLE kube TASK main sub create-kube-user TASK
+  import_tasks: create-kube-user.yml
+
+# create kubelet user and dir
+- name: ROLE kube TASK main sub create-kubelet-user TASK
+  import_tasks: create-kubelet-user.yml
+
+# create kube-proxy user and dir
+- name: ROLE kube TASK main sub create-kube-proxy-user TASK
+  import_tasks: create-kube-proxy-user.yml
+
+
+#######     CREATE CERTS FOR ETCD, ADMIN, APISERVER, CONTROLLER-MANAGER, SCHEDULER for MASTER NODE
+
+##### create ca/cert for etcd and kube masters
+#          (kube admin, apiserver, controller-manager, scheduler certs)
 
 # generate master ca/cert  
 - name: ROLE kube TASK main sub gen-maskter-ca-certs TASK.  generate master ca/cert
   import_tasks: gen-master-ca-certs.yml
+
 # generate etcd certs (server, client, peer cert)
 - name: ROLE kube TASK main sub gen-etcd-certs TASK.   generate etcd certs
   import_tasks: gen-etcd-certs.yml
+
 # generate kubernetes certs (admin, apiserver, controller-manager, scheduler)
 - name: ROLE kube TASK main sub gen-kube-certs TASK.   gen kube certs
   import_tasks: gen-kube-certs.yml
 
+
+#######     CREATE CERTS FOR KUBELET, KUBE-PROXY ON NODES
 
 ####  create cert for kubelet, kube-proxy on kube-nodes
 
 # create kublet and kube-proxy user and data directory
 - name: ROLE kube TASK main sub create-kubelet-user TASK.  make kublet user and data dir
   import_tasks: create-kubelet-user.yml
+
 - name: ROLE kube TASK main sub create-kube-proxy-user TASK. make kube-proxy user and data dir
   import_tasks: create-kube-proxy-user.yml
 
 # generate kubelet cert
 - name: ROLE kube TASK main sub gen-kubelet-certs TASK. generate kubelet cert
   import_tasks: gen-kubelet-certs.yml
+
 # generate kube-proxy cert
 - name: ROLE kube TASK main sub gen-kube-proxy-certs TASK. generate kube-proxy cert
   import_tasks: gen-kube-proxy-certs.yml
 
-##### config and restart etcd cluster  
-#- name: ROLE kube task main sub gen-etcd-systemd TASK.  generate etcd systemd and config
-#  import_tasks: gen-etcd-systemd.yml
-## setup single node time sync source for etcd cluster
-#- name: ROLE kube task main sub change-ntp-config TASK.  change ntp config to single time src and restart ntp
-#  import_tasks: change-ntp-config.yml
-## change firewall and port setting for etcd and ntp
-#- name: ROLE kube task main sub change-firewall-config TASK.  change firewall config to enable port 2370 2380 ntp and reload rules
-#  import_tasks: change-firewall-config.yml
-## start etcd service  
-#- name: ROLE kube task main sub etcd-start TASK.  start etcd
-#  import_tasks: etcd-start.yml
-## restart etcd cluster to make all configuration take effect  
-#- name: ROLE kube task main sub etcd-restart TASK.   restart etcd
-#  import_tasks: etcd-restart.yml
 
-########
+
+######      DEPLOY ETCD CLUSTER
+
+# download and install etcd binary files
+- name: ROLE kube TASK main sub install-etcd-bin TASK.  download and install etcd bin
+  import_tasks: install-etcd-bin.yml
+
+##### config and restart etcd cluster  
+
+- name: ROLE kube task main sub gen-etcd-systemd TASK.  generate etcd systemd and config
+  import_tasks: gen-etcd-systemd.yml
+
+# setup single node time sync source for etcd cluster
+- name: ROLE kube task main sub change-ntp-config TASK.  change ntp config to single time src and restart ntp
+  import_tasks: change-ntp-config.yml
+
+# change firewall and port setting for etcd and ntp
+- name: ROLE kube task main sub change-firewall-config TASK.  change firewall config to enable port 2370 2380 ntp and reload rules
+  import_tasks: change-firewall-config.yml
+
+# start etcd service  
+- name: ROLE kube task main sub etcd-start TASK.  start etcd
+  import_tasks: etcd-start.yml
+
+# restart etcd cluster to make all configuration take effect  
+- name: ROLE kube task main sub etcd-restart TASK.   restart etcd
+  import_tasks: etcd-restart.yml
+
+
+
+########   DEPLOY KEBERNETES ON MASTER NODES
+
+

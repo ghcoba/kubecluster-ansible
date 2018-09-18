@@ -115,15 +115,22 @@ etcd_listen_client_urls: "https://{{ etcd_machine_address }}:2379,https://127.0.
 ###########################################################################################
 # variable for kubernetes
 
+# kube username, group, home_dir, data_dir
+kube_user: kubernetes
+kube_group: kube
+
+kube_home_dir: "$HOME/.kube"
+kube_data_dir: "/var/lib/kube"
+kube_bin_dir: "/usr/local/bin"
 
 # kube config directory
 kube_conf_dir: "/etc/kubernetes"
 # kube cert directory
 kube_certs_dir: "{{ kube_conf_dir }}/pki"
 
-#kube cert group
-kube_cert_group: root
-# kube_cert_group: kube
+# variable: kube cert group
+#kube_cert_group: root
+kube_cert_group: kube
 
 # rem: we use master ca for both kube and etcd
 
@@ -196,8 +203,8 @@ kubelet_user: kubelet
 #kubelet_group: root
 kubelet_group: kubelet
 
-kubelet_cert_group: root
-#kubelet_cert_group: kubelet
+#kubelet_cert_group: root
+kubelet_cert_group: kubelet
 
 # kubelet certs
 kube_kubelet_cert_filename: "kubelet.pem"

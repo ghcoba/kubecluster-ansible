@@ -156,12 +156,12 @@
   file:
     path: "{{ item }}"
     state: file
-#    owner: {{ kube_proxy_cert_group }}
-    owner: root
+    owner: "{{ kube_proxy_cert_group }}"
+#    owner: root
     mode: 0640
   with_items:
     - "{{ kube_ca_file }}"
     - "{{ kube_kube_proxy_cert_file }}"
-    - "{{ kube_kube_proxy_file }}"
+    - "{{ kube_kube_proxy_key_file }}"
   when: inventory_hostname in groups['kube-nodes']
 

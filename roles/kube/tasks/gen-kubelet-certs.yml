@@ -71,11 +71,18 @@
     - cfssljson
   when: inventory_hostname in groups['kube-nodes']
 
-# get hostname
+# get hostname of current node
 - name: get hostname
   command: hostname
   register: hostname_current
   when: inventory_hostname in groups['kube-nodes']
+
+#- debug:
+#    msg: "system {{inventory_hostname }} has uuid {{ ansible_product_uuid }}"
+
+#- debug:
+#    var: hostname_current
+#    verbosity: 0
 
 # run make-kubelet-cert script to create cert on tmp kubelet config directory
 # (rem: script need copy master ca/ca-key from MASTER_CA_DIR to tmp kube cert config directory first,
@@ -97,7 +104,7 @@
     creates: "{{ tmp_kubelet_certs_config_dir }}/server.crt"
   environment:
     NODE_IPS: "{% for host in groups['kube-nodes'] %}{{ hostvars[host]['kube_nodes_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
-    NODE_NAME: "{{ hostname_current }}"
+#    NODE_NAME: "{{ hostname_current }}"
     NODE_DNS: "{{ groups['kube-nodes']|join(',') }}"
     CERT_GROUP: "{{ kubelet_group }}"
     CERT_DIR: "{{ kubelet_certs_dir }}"    
@@ -141,7 +148,7 @@
 - name: copy ansible tmp backup kubelet certs to work node
   copy:
     dest: "{{ kubelet_certs_dir }}/{{ item }}"
-    src:  "{{ ansible_tmp_kubelet_certs_backup_dir }}/{{ item }}"
+    src:  "{{ ansible_tmp_kubelet_certs_backup_dir }}/{{ hostname_current.stdout }}/{{ item }}"
     owner: "{{ kubelet_cert_group }}"
     group: "{{ kubelet_cert_group }}"
   with_items:
@@ -155,12 +162,12 @@
   file:
     path: "{{ item }}"
     state: file
-#    owner: {{ kubelet_cert_group }}
-    owner: root
+    owner: "{{ kubelet_cert_group }}"
+#    owner: root
     mode: 0640
   with_items:
     - "{{ kube_ca_file }}"
     - "{{ kube_kubelet_cert_file }}"
-    - "{{ kube_kubelet_file }}"
+    - "{{ kube_kubelet_key_file }}"
   when: inventory_hostname in groups['kube-nodes']
 

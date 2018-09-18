@@ -24,7 +24,6 @@ set -o pipefail
 
 # Caller should set in the ev:
 # NODE_IPS - IPs of all etcd servers
-# NODE_NAME - hostname of current node of kube-nodes
 # NODE_DNS - DNS names of all etcd servers
 # ARCH - what arch of cfssl should be downloaded
 
@@ -35,7 +34,6 @@ set -o pipefail
 
 node_ips="${NODE_IPS:="${1}"}"
 node_dns="${NODE_DNS:=""}"
-node_name= "${NODE_NAME:-"${1}"}"
 arch="${ARCH:-"linux-amd64"}"
 
 cert_dir="${CERT_DIR:-"/etc/kubernetes/pki"}"
@@ -91,6 +89,7 @@ done
 #chmod +x ./bin/cfssl{,json}
 #export PATH="$PATH:${tmpdir}/bin/"
 
+# change cfssl, cfssljson file executable
 chmod +x ./cfssl{,json}
 
 # copy master ca files from tmp master ca config directory
@@ -110,8 +109,23 @@ for arg do shift
 done; shift
 hosts_string="\"$(printf %s "$@")\""
 
-cn_name_current="system:node:${node_name}"
+# get hostname of currentnode
+hostname_current=$(hostname)
+
+cn_name_current="system:node:${hostname_current}"
 o_name_use="system:nodes"
+
+
+# debug
+#ls -al ./* > d.log
+#echo $node_ips >> d.log
+#echo $node_dns >> d.log
+#echo $cn_name >> d.log
+#echo $san_array >> d.log
+#echo $cn_name_current >> d.log
+#echo $o_name_use >> d.log 
+#hostname >> d.log
+
 
 ####    generate apiserver json
 cat <<EOF > kubelet.json
