@@ -65,3 +65,13 @@
     owner: "{{ kube_user }}"
     group: "{{ kube_group }}"
   when: inventory_hostname in groups['kube-masters']
+
+- name: create and ensure kube_log_dir exists
+  file:
+    path: "{{ kube_log_dir }}"
+    recurse: yes
+    state: directory
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+  when: inventory_hostname in groups['kube-masters']
+
