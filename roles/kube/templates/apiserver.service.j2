@@ -1,6 +1,6 @@
 {% macro initial_cluster() -%}
 {% for host in groups['kube-masters'] -%}
- {{ etcd_url_address }}=https://{{ hostvars[host]['etcd_machine_address'] }}:{{ etcd_peer_port }}
+   https://{{ hostvars[host]['etcd_machine_address'] }}:{{ etcd_peer_port }}
   {%- if not loop.last -%},{%- endif -%}
 {%- endfor -%}
 {% endmacro -%}

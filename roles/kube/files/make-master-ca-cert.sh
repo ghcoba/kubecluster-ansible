@@ -30,12 +30,14 @@ set -o pipefail
 # Also the following will be respected
 # CERT_DIR - where to place the finished certs (we create tmp cert config directory user CERT_DIR)
 # CERT_GROUP - who the group owner of the cert files should be
+# USE_LOCAL_BIN - '1' when using local cfssl, cfssljson binary at config directory
 
 node_ips="${NODE_IPS:="${1}"}"
 node_dns="${NODE_DNS:=""}"
 arch="${ARCH:-"linux-amd64"}"
 cert_dir="${CERT_DIR:-"/srv/kubernetes"}"
 cert_group="${CERT_GROUP:="root"}"
+use_local="${USE_LOCAL_BIN:="${1}"}"
 
 # The following certificate pairs are created:
 #
@@ -63,8 +65,14 @@ mkdir -p "$cert_dir"
 
 mkdir -p bin
 
-curl -sSL -o ./bin/cfssl "https://pkg.cfssl.org/R1.2/cfssl_$arch"
-curl -sSL -o ./bin/cfssljson "https://pkg.cfssl.org/R1.2/cfssljson_$arch"
+if [${use_local} == '1']; then
+   cp -p "${cert_dir}/cfssl" ./
+   cp -p "${cert_dir}/cfssljson" ./
+else
+   curl -sSL -o ./bin/cfssl "https://pkg.cfssl.org/R1.2/cfssl_$arch"
+   curl -sSL -o ./bin/cfssljson "https://pkg.cfssl.org/R1.2/cfssljson_$arch"
+fi
+
 chmod +x ./bin/cfssl{,json}
 export PATH="$PATH:${tmpdir}/bin/"
 

@@ -27,10 +27,17 @@ tmp_kube_certs_config_dir: "/etc/tmp_kube_certs_config"
 tmp_kubelet_certs_config_dir: "/etc/tmp_kubelet_certs_config"
 tmp_kube_proxy_certs_config_dir: "/etc/tmp_kube_proxy_certs_config"
 
-
-
+# storage dir on deploy playbook tmp/(storage_dir) for using local binary and using local packege
 ansible_tmp_kube_bin_local_dir: "{{ ansible_deploy_tmp_dir}}/kube_bin_local"
+ansible_tmp_kube_package_local_dir: "{{ ansible_deploy_tmp_dir}}/kube_package_local"
+ansible_tmp_cfssl_bin_local_dir: "{{ ansible_deploy_tmp_dir}}/cfssl_bin_local"
+ansible_tmp_etcd_package_local_dir: "{{ ansible_deploy_tmp_dir}}/etcd_package_local"
+ansible_tmp_etcd_bin_local_dir: "{{ ansible_deploy_tmp_dir}}/etcd_bin_local"
+ansible_tmp_docker_package_local_dir: "{{ ansible_deploy_tmp_dir}}/docker_package_local"
+ansible_tmp_flannel_package_local_dir: "{{ ansible_deploy_tmp_dir}}/flannel_package_local"
 
+# define if deployment will use local binary and package ( not using network downloading )
+ansible_use_local_package: true
 
 # group for tmp cert config directory
 tmp_cert_config_group: root

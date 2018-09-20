@@ -1,0 +1,15 @@
+---
+
+- name: ROLE kube TASK main sub install-etcd-bin-using-local-bin TASK. copy local etcd binary to etcd-nodes
+  copy:
+    src: "{{ ansible_tmp_etcd_bin_local_dir}}/{{ item }}"
+    dest: "{{ etcd_bin_path }}"
+    owner: etcd
+    group: etcd
+    mode: 0750
+  with_items:
+    - etcd
+    - etcdctl
+  when: 
+    - inventory_hostname in groups['etcd-nodes']    
+    - ansible_use_local_package == true

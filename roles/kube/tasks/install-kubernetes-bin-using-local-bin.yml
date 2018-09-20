@@ -1,6 +1,6 @@
 ---
 
-- name: copy kube binary for master node to master nodes
+- name: ROLE kube TASK main sub install-kubernetes-bin-using-local-bin TASK. copy local kube binary to install on kube-masters
   copy:
     src: "{{ ansible_tmp_kube_bin_local_dir }}/{{ item }}"
     dest: "{{ kube_bin_path }}"
@@ -17,9 +17,11 @@
     - kubectl
     - kube-scheduler
     - mounter
-  when: inventory_hostname in groups['kube-masters']    
+  when: 
+    - inventory_hostname in groups['kube-masters']
+    - ansible_use_local_package == true    
 
-- name: copy kubelet binary for work node to kube-nodes
+- name: copy local kubelet binary for kube-nodes
   copy:
     src: "{{ ansible_tmp_kube_bin_local_dir }}/{{ item }}"
     dest: "{{ kubelet_bin_path }}"
@@ -30,9 +32,11 @@
     mode: 0750
   with_items:
     - kubelet
-  when: inventory_hostname in groups['kube-nodes']
+  when: 
+    - inventory_hostname in groups['kube-nodes']
+    - ansible_use_local_package == true
 
-- name: copy kube-proxy binary for work node to kube-nodes
+- name: copy local kube-proxy binary to kube-nodes
   copy:
     src: "{{ ansible_tmp_kube_bin_local_dir }}/{{ item }}"
     dest: "{{ kube_proxy_bin_path }}"
@@ -43,4 +47,6 @@
     mode: 0750
   with_items:
     - kube-proxy
-  when: inventory_hostname in groups['kube-nodes']
+  when: 
+    - inventory_hostname in groups['kube-nodes']
+    - ansible_use_local_package == true

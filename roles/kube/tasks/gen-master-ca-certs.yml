@@ -49,7 +49,20 @@
   run_once: true
   delegate_to: "{{ groups['kube-masters'][0] }}"
   
-  
+# copy cfssl and cfssljson binary from ansible deploy tmp storage to config dir if using local package
+- name: copy cfssl cfssljson binary from deploy local to config directory
+  copy:
+    src: "{{ ansible_tmp_cfssl_bin_local_dir }}/{{ item }}"
+    dest: "{{ tmp_master_ca_config_dir }}/{{ item }}"
+    owner: root
+    group: root
+  with_items:
+    - cfssl
+    - cfssljson
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  when: ansible_use_local_package == true  
+
 # generate master ca cert on the first master node
 - name: gen master ca certs on the first master server
   command:
@@ -63,6 +76,7 @@
     NODE_DNS: "{{ groups['cluster']|join(',') }}"
     CERT_DIR: "{{ tmp_master_ca_config_dir }}"
     CERT_GROUP: "{{ tmp_cert_config_group }}"
+    USE_LOCAL_BIN: "{% if ansible_use_local_package == true %}{{ '1' }}{% endif %} "
 
 
 # check tmp master ca config directory on first master node

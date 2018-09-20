@@ -63,6 +63,11 @@
 # download and install etcd binary files
 - name: ROLE kube TASK main sub install-etcd-bin TASK.  download and install etcd bin
   import_tasks: install-etcd-bin.yml
+  when: ansible_use_local_package != true
+# copy local bin to install etcd binary files
+- name: ROLE kube TASK main sub install-etcd-bin-using-local-bin TASK.  copy from local bin and install etcd bin
+  import_tasks: install-etcd-bin-using-local-bin.yml
+  when: ansible_use_local_package == true
 
 ##### config and restart etcd cluster  
 
@@ -90,8 +95,14 @@
 ########   DEPLOY KEBERNETES ON MASTER NODES
 
 # download and install kubernetes binary files
-- name: ROLE kube TASK main sub install-kubernetes-bin TASK.  download and install kube bin
-  import_tasks: install-kubernetes-bin-from-local.yml
+- name: ROLE kube TASK main sub install-kubernetes-bin TASK.  download and install kub$
+  import_tasks: install-kubernetes-bin.yml
+  when: ansible_use_local_package != true
+# copy local binary and install kubernetes binary files
+- name: ROLE kube TASK main sub install-kubernetes-bin-using-local-bin TASK.  copy local bin to install kub$
+  import_tasks: install-kubernetes-bin-using-local-bin.yml
+  when: ansible_use_local_package == true
+
 
 ##### config kubernetes cluster service
 - name: ROLE kube task main sub gen-kube-systemd TASK.  generate kube systemd and config
