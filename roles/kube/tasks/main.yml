@@ -91,7 +91,7 @@
 
 # download and install kubernetes binary files
 - name: ROLE kube TASK main sub install-kubernetes-bin TASK.  download and install kube bin
-  import_tasks: install-kubernetes-bin.yml
+  import_tasks: install-kubernetes-bin-from-local.yml
 
 ##### config kubernetes cluster service
 - name: ROLE kube task main sub gen-kube-systemd TASK.  generate kube systemd and config

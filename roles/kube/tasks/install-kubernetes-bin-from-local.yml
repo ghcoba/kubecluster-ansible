@@ -1,0 +1,46 @@
+---
+
+- name: copy kube binary for master node to master nodes
+  copy:
+    src: "{{ ansible_tmp_kube_bin_local_dir }}/{{ item }}"
+    dest: "{{ kube_bin_path }}"
+    owner: "{{ kube_user }}"
+#    owner: root
+    group: "{{ kube_group }}"
+#    group: root
+    mode: 0750
+  with_items:
+    - kubeadm
+    - kube-aggregator
+    - kube-apiserver
+    - kube-controller-manager
+    - kubectl
+    - kube-scheduler
+    - mounter
+  when: inventory_hostname in groups['kube-masters']    
+
+- name: copy kubelet binary for work node to kube-nodes
+  copy:
+    src: "{{ ansible_tmp_kube_bin_local_dir }}/{{ item }}"
+    dest: "{{ kubelet_bin_path }}"
+    owner: "{{ kubelet_user }}"
+#    owner: root
+    group: "{{ kubelet_group }}"
+#    group: root
+    mode: 0750
+  with_items:
+    - kubelet
+  when: inventory_hostname in groups['kube-nodes']
+
+- name: copy kube-proxy binary for work node to kube-nodes
+  copy:
+    src: "{{ ansible_tmp_kube_bin_local_dir }}/{{ item }}"
+    dest: "{{ kube_proxy_bin_path }}"
+    owner: "{{ kube_proxy_user }}"
+#    owner: root
+    group: "{{ kube_proxy_group }}"
+#    group: root
+    mode: 0750
+  with_items:
+    - kube-proxy
+  when: inventory_hostname in groups['kube-nodes']

@@ -1,3 +1,11 @@
+{% macro initial_lb() -%}
+{% for host in groups['load-balancer'] %}
+  {{ hostvars[host]['load_balancer_machine_address'] }}
+  {% if not loop.last %},{% endif %}
+{% endfor %}
+{% endmacro -%}
+
+
 [Unit]
 Description=kube-scheduler
 After=network.target
@@ -8,7 +16,7 @@ EnvironmentFile=-/etc/kubernetes/scheduler
 ExecStart={{ kube_bin_dir }}/kube-scheduler \
 	    --logtostderr=true \
 	    --v=0 \
-	    --master={{ "{% for host in groups['load-balancer'] %}{{ hostvars[host]['load_balancer_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}" }} \
+	    --master={{ initial_lb() }} \
 	    --kubeconfig={{ kube_scheduler_kubeconfig_file }} \
 	    --leader-elect=true
 Restart=on-failure

@@ -28,6 +28,10 @@ tmp_kubelet_certs_config_dir: "/etc/tmp_kubelet_certs_config"
 tmp_kube_proxy_certs_config_dir: "/etc/tmp_kube_proxy_certs_config"
 
 
+
+ansible_tmp_kube_bin_local_dir: "{{ ansible_deploy_tmp_dir}}/kube_bin_local"
+
+
 # group for tmp cert config directory
 tmp_cert_config_group: root
 

@@ -1,8 +1,15 @@
 {% macro initial_cluster() -%}
-{% for host in groups['etcd-nodes'] -%}
-  {{ hostvars[host]['ansible_hostname'] }}=https://{{ hostvars[host]['etcd_machine_address'] }}:{{ etcd_peer_port }}
+{% for host in groups['kube-masters'] -%}
+ {{ etcd_url_address }}=https://{{ hostvars[host]['etcd_machine_address'] }}:{{ etcd_peer_port }}
   {%- if not loop.last -%},{%- endif -%}
 {%- endfor -%}
+{% endmacro -%}
+
+{% macro initial_lb() -%}
+{% for host in groups['load-balancer'] %}
+  {{ hostvars[host]['load_balancer_machine_address'] }}
+  {% if not loop.last %},{% endif %}
+{% endfor %}
 {% endmacro -%}
 
 
@@ -17,8 +24,8 @@ EnvironmentFile=-/etc/kubernetes/apiserver
 ExecStart={{ kube_bin_dir }}/kube-apiserver \
 	    --logtostderr=true \
 	    --v=0 \
-	    --advertise-address={{ "{% for host in groups['load-balancer'] %}{{ hostvars[host]['load_balancer_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}" }} \
-	    --bind-address={{ "{% for host in groups['load-balancer'] %}{{ hostvars[host]['load_balancer_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}" }} \
+	    --advertise-address={{ initial_lb() }} \
+	    --bind-address={{ initial_lb() }} \
 	    --secure-port=6443 \
 	    --insecure-port=0 \
 	    --allow-privileged=true \
