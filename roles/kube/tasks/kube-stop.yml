@@ -1,0 +1,26 @@
+---
+
+- name: STARTING kub-stop TASK.    stop kubernetes apiserver service
+  systemd:
+    name: kube-apiserver
+#    daemon_reload: yes
+    state: stopped
+    enabled: no
+  when: inventory_hostname in groups['kube-masters']
+
+- name: stop kubernetes controller-manager service
+  systemd:
+    name: kube-controller-manager
+#    daemon_reload: yes
+    state: stopped
+    enabled: no
+  when: inventory_hostname in groups['kube-masters']
+
+- name: stop kubernetes scheduler
+  systemd:
+    name: kube-scheduler
+#    daemon_reload: yes
+    state: stopped
+    enabled: no
+  when: inventory_hostname in groups['kube-masters']
+

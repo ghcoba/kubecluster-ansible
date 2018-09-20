@@ -89,4 +89,18 @@
 
 ########   DEPLOY KEBERNETES ON MASTER NODES
 
+# download and install kubernetes binary files
+- name: ROLE kube TASK main sub install-kubernetes-bin TASK.  download and install kube bin
+  import_tasks: install-kubernetes-bin.yml
 
+##### config kubernetes cluster service
+- name: ROLE kube task main sub gen-kube-systemd TASK.  generate kube systemd and config
+  import_tasks: gen-kube-systemd.yml
+
+# start kube service
+- name: ROLE kube task main sub kube-start TASK.  start kube services
+  import_tasks: kube-start.yml
+
+# restart kubernetes cluster to make all configuration take effect
+- name: ROLE kube task main sub kube-restart TASK.   restart kube services
+  import_tasks: kube-restart.yml

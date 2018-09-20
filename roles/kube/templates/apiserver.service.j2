@@ -1,20 +1,28 @@
+{% macro initial_cluster() -%}
+{% for host in groups['etcd-nodes'] -%}
+  {{ hostvars[host]['ansible_hostname'] }}=https://{{ hostvars[host]['etcd_machine_address'] }}:{{ etcd_peer_port }}
+  {%- if not loop.last -%},{%- endif -%}
+{%- endfor -%}
+{% endmacro -%}
+
+
 [Unit]
 Description=kube-apiserver
 After=network.target
 After=etcd.service
 
 [Service]
-User=kube
+User={{ kube_user }}
 EnvironmentFile=-/etc/kubernetes/apiserver
 ExecStart={{ kube_bin_dir }}/kube-apiserver \
 	    --logtostderr=true \
 	    --v=0 \
-	    --advertise-address={{ kube_masters_machina_address }} \
-	    --bind-address={{ kube_masters_machine_address }} \
+	    --advertise-address={{ "{% for host in groups['load-balancer'] %}{{ hostvars[host]['load_balancer_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}" }} \
+	    --bind-address={{ "{% for host in groups['load-balancer'] %}{{ hostvars[host]['load_balancer_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}" }} \
 	    --secure-port=6443 \
 	    --insecure-port=0 \
 	    --allow-privileged=true \
-	    --etcd-servers={{ kube_etcd_servers }} \
+	    --etcd-servers={{ initial_cluster() }} \
 	    --etcd-cafile={{ kube_etcd_ca_file }} \
 	    --etcd-certfile={{ kube_etcd_cert_file }} \
 	    --etcd-keyfile={{ kube_etcd_key_file }} \

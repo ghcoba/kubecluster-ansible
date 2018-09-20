@@ -7,13 +7,16 @@
 
 # ansible deploy tmp directory to store downloaded and generated data
 ansible_deploy_tmp_dir: tmp
+
 ansible_tmp_master_ca_backup_dir: "{{ ansible_deploy_tmp_dir }}/master_ca_backup"
 ansible_tmp_etcd_certs_backup_dir: "{{ ansible_deploy_tmp_dir }}/etcd_certs_backup"
 ansible_tmp_kube_certs_backup_dir: "{{ ansible_deploy_tmp_dir }}/kube_certs_backup"
-# each kubelet has its own specific cert for every work nodes
+# each kubelet has its own specific cert for every work nodes, backup stored in sub dir of node4, ..
 ansible_tmp_kubelet_certs_backup_dir: "{{ ansible_deploy_tmp_dir }}/kubelet_certs_backup"
 ansible_tmp_kube_proxy_certs_backup_dir: "{{ ansible_deploy_tmp_dir }}/kube_proxy_certs_backup"
 
+# ansible tmp storage for kube utility binary
+ansible_tmp_kube_bin_backup_dir: "{{ ansible_deploy_tmp_dir }}/kube_bin"
 
 # tmp ca and cert config directory to generate and store ca/cert data: master ca, etcd cert, kube cert 
 tmp_master_ca_config_dir: "/etc/tmp_master_ca_config"
@@ -112,8 +115,26 @@ etcd_listen_peer_urls: "https://{{ etcd_machine_address }}:{{ etcd_peer_port }}"
 etcd_advertise_client_urls: "https://{{ etcd_machine_address }}:{{ etcd_client_port }}"
 etcd_listen_client_urls: "https://{{ etcd_machine_address }}:2379,https://127.0.0.1:2379"
 
+########################################################################################
+# kubernetes binary variables
+
+# kubernetes release binary download url is: https://dl.k8s.io/v1.11.0/kubernetes-server-linux-amd64.tar.gz
+# other versions : 
+#   https://dl.k8s.io/v1.11.3/kubernetes-server-linux-amd64.tar.gz
+
+# etcd version and download url
+kube_version: 1.11.3
+
+kube_download_url_base: " https://dl.k8s.io/v{{ kube_version}}"
+kube_release: "kubernetes"
+kube_package_name: "kubernetes-server-linux-amd64"
+kube_download_url: "{{ kube_download_url_base }}/{{ kube_package_name }}.tar.gz"
+
+# kube binary, data, config, certs directory definition
+kube_bin_path: /usr/local/bin
+
 ###########################################################################################
-# variable for kubernetes
+# variables for kubernetes
 
 # kube username, group, home_dir, data_dir
 kube_user: kube
@@ -121,7 +142,6 @@ kube_group: kube
 
 kube_home_dir: "$HOME/.kube"
 kube_data_dir: "/var/lib/kube"
-kube_bin_dir: "/usr/local/bin"
 kube_log_dir: "/var/log/kubernetes"
 
 # kube config directory
@@ -187,6 +207,7 @@ kube_scheduler_csr_filename:      "scheduler.csr"
 apiserver_service_cluster_ip: "10.96.0.1"
 apiserver_service_cluster_ip_range: "10.96.0.0/12"
 
+
 #########################################################################################
 # kubelet variables
 
@@ -243,3 +264,80 @@ kube_kube_proxy_cert_file: "{{ kube_proxy_certs_dir }}/kube-proxy.pem"
 kube_kube_proxy_key_file:  "{{ kube_proxy_certs_dir }}/kube-proxy-key.pem"
 kube_kube_proxy_json_filename: "kube-proxy.json"
 kube_kube_proxy_csr_filename:  "kube-proxy.csr"
+
+######################################################################################
+# variables for kube systemd service file generation of apiserver, controller-manager,
+#   scheduler services
+
+############################
+#### common
+kube_bin_dir: "{{ kube_bin_path }}"
+# kube_log_dir:
+
+#kube_ca_file: "{{ kube_certs_dir }}/ca.pem"
+#kube_ca_key_file:  "{{ kube_certs_dir }}/ca-key.pem"
+kube_ca_cert_file: "{{ kube_ca_file }}"
+#kube_ca_key_file:        #(already defined)
+
+############################
+####  refered in apiserver
+
+# #kube_masters_machina_address for apiserver advertis and bin address
+# ATTENTION: now use load balance ip as --advertise-address and --bind-address
+# it will be defined in template file using macro
+#kube_masters_machina_address: 192.168.100.101
+#kube_masters_machina_address: 192.168.100.109
+#kube_masters_machina_address: "{% for host in groups['load-balancer'] %}{{ hostvars[host]['load_balancer_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+
+# apiserver cert files
+# ref (already defined previously):
+#kube_apiserver_cert_file: "{{ kube_certs_dir }}/apiserver.pem"
+#kube_apiserver_key_file:  "{{ kube_certs_dir }}/apiserver-key.pem"
+
+#kube_apiserver_cert_file:
+#kube_apiserver_key_file:
+
+### ETCD server and client cert files for accessing etcd server
+# etcd servers list: https://192.168.100.101:2379,https://192.....
+# ATTENTION: we define it in template using macro
+#kube_etcd_servers:
+
+# ref (already defined previously):
+#etcd_ca_file: "{{ etcd_certs_dir }}/etcd-ca.pem"
+#etcd_ca_key_file: "{{ etcd_certs_dir }}/etcd-ca-key.pem"
+#etcd_server_cert_file: "{{ etcd_certs_dir }}/etcd-server.pem"
+#etcd_server_key_file: "{{ etcd_certs_dir }}/etcd-server-key.pem"
+#etcd_client_cert_file: "{{ etcd_certs_dir }}/etcd-client.pem"
+#etcd_client_key_file: "{{ etcd_certs_dir }}/etcd-client-key.pem"
+
+# we use etcd client key to access etcd server
+kube_etcd_ca_file: "{{ etcd_ca_file }}"
+kube_etcd_cert_file: "{{ etcd_client_cert_file }}"
+kube_etcd_key_file: "{{ etcd_client_key_file }}"
+
+##############################################
+#### refered in controller-manager
+# ATTENTION: we defined this in template using inline macro script to apiserver load-balancer ip address
+#kube_apiserver_lb_address: 192.168.100.101
+#kube_apiserver_lb_address: 192.168.100.109
+#kube_apiserver_lb_address: "{% for host in groups['load-balancer'] %}{{ hostvars[host]['load_balancer_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+
+# config file
+kube_controller_manager_kubeconfig_file: "{{ kube_conf_dir }}/ontroller-manager.conf"
+
+# cert file
+#kube_ca_cert_file:   # ca.pem, already defined
+#kube_ca_key_file:   # ca-key.pem, already defined
+
+#############################################
+#### refered in scheduler-manger
+
+# we use script in template to generate kube_apiserver_lb_address (load balance server)
+
+# config file
+kube_scheduler_kubeconfig_file: "{{ kube_conf_dir }}/scheduler.conf"
+
+# cert file
+#kube_ca_cert_file:   # ca.pem, already defined
+#kube_ca_key_file:   # ca-key.pem, already defined
+

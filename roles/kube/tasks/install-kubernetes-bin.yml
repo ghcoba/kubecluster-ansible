@@ -1,0 +1,99 @@
+---
+
+- name: STARTING install-kubernetes-bin TASK. check whether kube release tar downloaded on the first etcd server 
+  stat: 
+    path: "{{ ansible_temp_dir }}/{{ kube_release}}.tar.gz"
+  register: kube_release_download_check
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  run_once: true    
+
+- name: download kubernetes release tar file on first the master server 
+  get_url:
+    url: "{{ kube_download_url }}"
+    dest: "{{ ansible_temp_dir }}"
+    validate_certs: no
+    timeout: 30
+  register: download_kube
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  run_once: true
+  when: not kube_release_download_check.stat.exists
+  
+- name: check whether kubernetes release tar extracted on the first master server 
+  stat: 
+    path: "{{ ansible_temp_dir }}/{{ kube_release }}"
+  register: kube_release_tar_check
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  run_once: true  
+
+- name: extract kubernetes tar file
+  unarchive:
+    src: "{{ ansible_temp_dir }}/{{ kube_package_name}}.tar.gz"
+    dest: "{{ ansible_temp_dir }}"
+    remote_src: yes
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  when: not kube_release_tar_check.stat.exists
+
+# backup kubernetes binary to ansible deploy tmp directory  
+- name: fetch kube bins from the first etcd server
+  fetch:
+    src: "{{ ansible_temp_dir }}/{{ kube_release }}/server/bin/{{ item }}"
+    dest: "{{ ansible_tmp_kube_bin_backup_dir }}/{{ item }}"
+    flat: yes
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  with_items:
+    - kubeadm
+    - kube-aggregator
+    - kube-apiserver
+    - kube-controller-manager
+    - kubectl
+    - kubelet
+    - kube-proxy
+    - kube-scheduler
+    - mounter
+  
+- name: copy kube binary for master node to master nodes
+  copy:
+    src: "{{ ansible_tmp_kube_bin_backup_dir }}/{{ item }}"
+    dest: "{{ kube_bin_path }}"
+    owner: "{{ kube_user }}"
+#    owner: root
+    group: "{{ kube_group }}"
+#    group: root
+    mode: 0750
+  with_items:
+    - kubeadm
+    - kube-aggregator
+    - kube-apiserver
+    - kube-controller-manager
+    - kubectl
+    - kube-scheduler
+    - mounter
+  when: inventory_hostname in groups['kube-masters']    
+
+- name: copy kubelet binary for work node to kube-nodes
+  copy:
+    src: "{{ ansible_tmp_kube_bin_backup_dir }}/{{ item }}"
+    dest: "{{ kubelet_bin_path }}"
+    owner: "{{ kubelet_user }}"
+#    owner: root
+    group: "{{ kubelet_group }}"
+#    group: root
+    mode: 0750
+  with_items:
+    - kubelet
+  when: inventory_hostname in groups['kube-nodes']
+
+- name: copy kube-proxy binary for work node to kube-nodes
+  copy:
+    src: "{{ ansible_tmp_kube_bin_backup_dir }}/{{ item }}"
+    dest: "{{ kube_proxy_bin_path }}"
+    owner: "{{ kube_proxy_user }}"
+#    owner: root
+    group: "{{ kube_proxy_group }}"
+#    group: root
+    mode: 0750
+  with_items:
+    - kube-proxy
+  when: inventory_hostname in groups['kube-nodes']
