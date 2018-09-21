@@ -2,20 +2,20 @@
 
 - name: STARTING create-etcd-user TASK.  create system etcd group
   group:
-    name: etcd
+    name: "{{ etcd_group }}"
     state: present
   when: inventory_hostname in groups['etcd-nodes']
 
 
 - name: create system etcd user
   user:
-    name: etcd
+    name: "{{ etcd_user }}"
     comment: "etcd user"
     shell: /sbin/nologin
     state: present
     system: yes
     home: "{{ etcd_data_dir }}"
-    groups: etcd
+    groups: "{{ etcd_group }}"
   when: inventory_hostname in groups['etcd-nodes']
 
 
@@ -24,6 +24,6 @@
     path: "{{ etcd_data_dir }}"
     recurse: yes
     state: directory
-    owner: etcd
-    group: etcd
+    owner: "{{ etcd_user }}"
+    group: "{{ etcd_group }}"
   when: inventory_hostname in groups['etcd-nodes']

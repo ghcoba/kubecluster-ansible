@@ -6,7 +6,7 @@
   group:
     name: "{{ kube_group }}"
     state: present
-  when: inventory_hostname in groups['kube-masters']
+  when: inventory_hostname in groups['kube-masters'] or inventory_hostname in groups['etcd-nodes']
 
 
 - name: create system kube user
@@ -17,8 +17,9 @@
     state: present
     system: yes
     home: "{{ kube_home_dir }}"
-    groups: "{{ kube_group }}"
-  when: inventory_hostname in groups['kube-masters']
+#   ATTENTION: also addre kube user to etcd group, to enable kube user has rights to access etcd certs
+    groups: "{{ kube_group }}, {{ etcd_group}}"
+  when: inventory_hostname in groups['kube-masters'] or inventory_hostname in groups['etcd-nodes']
 
 
 - name: create and ensure kube_data_dir exists

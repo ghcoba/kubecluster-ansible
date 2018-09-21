@@ -38,8 +38,8 @@
     path: "{{ kube_certs_dir }}"
     state: directory
     force: yes
-    owner: root
-    group: root
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
     recurse: yes
   when: inventory_hostname in groups['kube-masters']
 
@@ -138,12 +138,12 @@
   when: inventory_hostname in groups['kube-masters']
   
 
-# change owner of ca and cert files on all nodes of etcd cluster 
-- name: change and ensure etcd certs permission of certs of each node of kube masters
+# change owner of ca and cert files on all kube-masters 
+- name: change and ensure kube certs permission of certs of each node of kube masters
   file:
     path: "{{ item }}"
     state: file
-    owner: root
+    owner: "{{ kube_user }}"
     mode: 0640
   with_items:
     - "{{ kube_ca_file }}"

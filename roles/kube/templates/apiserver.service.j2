@@ -1,16 +1,20 @@
 {% macro initial_cluster() -%}
-{% for host in groups['kube-masters'] -%}
-   https://{{ hostvars[host]['etcd_machine_address'] }}:{{ etcd_peer_port }}
+{% for host in groups['etcd-nodes'] -%}
+   https://{{ hostvars[host]['etcd_machine_address'] }}:{{ etcd_client_port }}
   {%- if not loop.last -%},{%- endif -%}
 {%- endfor -%}
 {% endmacro -%}
 
 {% macro initial_lb() -%}
-{% for host in groups['load-balancer'] %}
+{% for host in groups['load-balancer'] -%}
   {{ hostvars[host]['load_balancer_machine_address'] }}
-  {% if not loop.last %},{% endif %}
-{% endfor %}
+  {%- if not loop.last -%},{%- endif -%}
+{%- endfor -%}
 {% endmacro -%}
+
+{% macro get_host_ip() -%}
+   {{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}
+{%- endmacro -%}
 
 
 [Unit]
@@ -24,10 +28,9 @@ EnvironmentFile=-/etc/kubernetes/apiserver
 ExecStart={{ kube_bin_dir }}/kube-apiserver \
 	    --logtostderr=true \
 	    --v=0 \
-	    --advertise-address={{ initial_lb() }} \
-	    --bind-address={{ initial_lb() }} \
+	    --advertise-address={{ get_host_ip() }} \
+	    --bind-address={{ get_host_ip() }} \
 	    --secure-port=6443 \
-	    --insecure-port=0 \
 	    --allow-privileged=true \
 	    --etcd-servers={{ initial_cluster() }} \
 	    --etcd-cafile={{ kube_etcd_ca_file }} \
@@ -39,10 +42,10 @@ ExecStart={{ kube_bin_dir }}/kube-apiserver \
 	    --tls-private-key-file={{ kube_apiserver_key_file }} \
 	    --client-ca-file={{ kube_ca_cert_file }} \
 	    --service-account-key-file={{ kube_ca_key_file }} \
-	    --experimental-bootstrap-token-auth=true \
+	    --enable-bootstrap-token-auth=true \
 	    --apiserver-count=3 \
 	    --enable-swagger-ui=true \
-	    --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds \
+	    --enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds \
 	    --authorization-mode=RBAC \
 	    --audit-log-maxage=30 \
 	    --audit-log-maxbackup=3 \

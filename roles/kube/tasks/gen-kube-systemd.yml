@@ -9,26 +9,18 @@
 - name: STARTING gen-kube-systemd TAKS. create kube apiserver systemd unit file
   template: 
     src: apiserver.service.j2
-    dest: /etc/systemd/system/apiserver.service
+    dest: /etc/systemd/system/kube-apiserver.service
   when: inventory_hostname in groups['kube-masters']
   
 - name: create kube controller-manager systemd unit file
   template:
     src: controller-manager.service.j2
-    dest: /etc/systemd/system/controller-manager.service
+    dest: /etc/systemd/system/kube-controller-manager.service
   when: inventory_hostname in groups['kube-masters']
 
 - name: create kube scheduler systemd unit file
   template:
     src: scheduler.service.j2
-    dest: /etc/systemd/system/scheduler.service
+    dest: /etc/systemd/system/kube-scheduler.service
   when: inventory_hostname in groups['kube-masters']
     
-#- name: TASK gen-etcd-systemd - sub task create etcd ENV. create etcd env conf
-#  template: 
-#    src: etcd.conf.j2
-#    dest: /etc/etcd/etcd.conf
-#    owner: etcd
-#    group: etcd
-#    mode: 0540
-#  when: inventory_hostname in groups['etcd-nodes']    

@@ -62,6 +62,9 @@ etcd_certs_dir: "{{ etcd_conf_dir }}/ssl"
 # etcd certo group
 etcd_cert_group: etcd
 
+etcd_user: etcd
+etcd_group: etcd
+
 # rem: we use master ca as ca for both kube and etcd
 
 # etcd ca filename definition 

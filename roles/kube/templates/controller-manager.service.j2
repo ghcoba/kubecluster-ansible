@@ -1,8 +1,8 @@
 {% macro initial_lb() -%}
-{% for host in groups['load-balancer'] %}
+{%- for host in groups['load-balancer'] -%}
   {{ hostvars[host]['load_balancer_machine_address'] }}
-  {% if not loop.last %},{% endif %}
-{% endfor %}
+  {%- if not loop.last -%},{%- endif -%}
+{%- endfor -%}
 {% endmacro -%}
 
 

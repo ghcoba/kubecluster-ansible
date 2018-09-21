@@ -8,19 +8,19 @@
     enabled: yes
   when: inventory_hostname in groups['kube-masters']
 
-- name: restart kubernetes controller-manager service
-  systemd:
-    name: kube-controller-manager
-    daemon_reload: yes
-    state: restarted
-    enabled: yes
-  when: inventory_hostname in groups['kube-masters']
+#- name: restart kubernetes controller-manager service
+#  systemd:
+#    name: kube-controller-manager
+#    daemon_reload: yes
+#    state: restarted
+#    enabled: yes
+#  when: inventory_hostname in groups['kube-masters']
 
-- name: restart kubernetes scheduler
-  systemd:
-    name: kube-scheduler
-    daemon_reload: yes
-    state: restarted
-    enabled: yes
-  when: inventory_hostname in groups['kube-masters']
+#- name: restart kubernetes scheduler
+#  systemd:
+#    name: kube-scheduler
+#    daemon_reload: yes
+#    state: restarted
+#    enabled: yes
+#  when: inventory_hostname in groups['kube-masters']
 

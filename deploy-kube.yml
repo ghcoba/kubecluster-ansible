@@ -11,10 +11,8 @@
   become: yes
   roles:
     - role: kube
-#    http_proxy: http://10.0.0.9:30080
-#    https_proxy: http://10.0.0.9:30080
-    http_proxy: http://192.168.20.221:30080
-    https_proxy: http://192.168.20.221:30080
-
-  tags:
-    - kube
+  environment:
+    http_proxy: http://10.0.0.9:30080
+    https_proxy: http://10.0.0.9:30080
+#    http_proxy: http://192.168.20.221:30080
+#    https_proxy: http://192.168.20.221:30080
