@@ -76,7 +76,7 @@
     NODE_DNS: "{{ groups['cluster']|join(',') }}"
     CERT_DIR: "{{ tmp_master_ca_config_dir }}"
     CERT_GROUP: "{{ tmp_cert_config_group }}"
-    USE_LOCAL_BIN: "{% if ansible_use_local_package == true %}{{ '1' }}{% endif %} "
+    USE_LOCAL_BIN: "{%- if ansible_use_local_package == true -%}{{ 'yes' }}{%- endif -%} "
 
 
 # check tmp master ca config directory on first master node

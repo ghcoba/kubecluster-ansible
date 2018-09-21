@@ -65,9 +65,12 @@ mkdir -p "$cert_dir"
 
 mkdir -p bin
 
-if [${use_local} == '1']; then
-   cp -p "${cert_dir}/cfssl" ./
-   cp -p "${cert_dir}/cfssljson" ./
+echo ${use_local} > ${cert_dir}/use_local.log
+
+if [ $use_local = yes ]
+then
+   cp -p "${cert_dir}/cfssl" ./bin/cfssl
+   cp -p "${cert_dir}/cfssljson" ./bin/cfssljson
 else
    curl -sSL -o ./bin/cfssl "https://pkg.cfssl.org/R1.2/cfssl_$arch"
    curl -sSL -o ./bin/cfssljson "https://pkg.cfssl.org/R1.2/cfssljson_$arch"
