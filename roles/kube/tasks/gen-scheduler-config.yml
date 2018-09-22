@@ -1,0 +1,70 @@
+---
+
+# file: roles/kube/tasks/gen-scheduler-config.yml
+# generate scheduler config file (set cluster, credential, context, and default context)
+# copy to ansible backup
+# copy to kube config dir
+
+# generate kube scheduler config file
+- name: generate scheduler config - set cluster
+  command: >
+    /usr/local/bin/kubectl config set-cluster kubernetes
+      --certificate-authority="{{ kube_ca_file }}" 
+      --embed-certs=true 
+      --server="{{ kube_load_balancer_apiserver_url }}"
+      --kubeconfig=scheduler.conf
+  args:
+    chdir: "{{ kube_conf_dir }}/"
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  run_once: true
+
+- name: generate kube scheduler config - set credential
+  command: >
+    /usr/local/bin/kubectl config set-credentials system:kube-scheduler 
+      --client-certificate="{{ kube_scheduler_cert_file }}"
+      --embed-certs=true 
+      --client-key="{{ kube_scheduler_key_file }}" 
+      --kubeconfig=scheduler.conf
+  args:
+    chdir: "{{ kube_conf_dir }}/"
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  run_once: true
+
+- name: generate kube scheduler config - set context
+  command: >
+    /usr/local/bin/kubectl config set-context system:kube-scheduler@kubernetes
+      --cluster=kubernetes
+      --user=system:kube-scheduler
+      --kubeconfig=scheduler.conf
+  args:
+    chdir: "{{ kube_conf_dir }}/"
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  run_once: true
+
+- name: generate kube scheduler config - set default context
+  command: >
+    /usr/local/bin/kubectl config use-context system:kube-scheduler@kubernetes 
+      --kubeconfig=scheduler.conf
+  args:
+    chdir: "{{ kube_conf_dir }}/"
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  run_once: true
+
+# copy kube scheduler config file scheduler.conf to ansible backup directory
+- name: fetch kube scheduler config file admin.conf to ansible backup directory
+  fetch:
+    src: "{{ kube_conf_dir }}/scheduler.conf"
+    dest: "{{ ansible_tmp_kube_configs_dir }}/scheduler.conf"
+    flat: yes
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  run_once: true
+
+# copy kube scheduler config file to kube home directory of every master node
+- name: copy kube scheduler config file to kube home directory of every master node
+  copy:
+    dest: "{{ kube_conf_dir }}/scheduler.conf"
+    src:  "{{ ansible_tmp_kube_configs_dir }}/scheduler.conf"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_cert_group }}"
+  when: inventory_hostname in groups['kube-masters']
+  

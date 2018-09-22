@@ -64,6 +64,7 @@
 - name: ROLE kube TASK main sub install-etcd-bin TASK.  download and install etcd bin
   import_tasks: install-etcd-bin.yml
   when: ansible_use_local_package != true
+
 # copy local bin to install etcd binary files
 - name: ROLE kube TASK main sub install-etcd-bin-using-local-bin TASK.  copy from local bin and install etcd bin
   import_tasks: install-etcd-bin-using-local-bin.yml
@@ -98,6 +99,7 @@
 - name: ROLE kube TASK main sub install-kubernetes-bin TASK.  download and install kub$
   import_tasks: install-kubernetes-bin.yml
   when: ansible_use_local_package != true
+
 # copy local binary and install kubernetes binary files
 - name: ROLE kube TASK main sub install-kubernetes-bin-using-local-bin TASK.  copy local bin to install kub$
   import_tasks: install-kubernetes-bin-using-local-bin.yml
@@ -108,10 +110,26 @@
 - name: ROLE kube task main sub gen-kube-systemd TASK.  generate kube systemd and config
   import_tasks: gen-kube-systemd.yml
 
-# start kube service
+##### generate kube-apiserver, kube-controller-manager, kube-scheduler config
+# controller-manager and scheduler service need these config file setting - must be
+# (run) generated before starting services
+
+# gen kube-apiserver config and copy to kube home HOME/.kube
+- name: ROLE kube task main sub apiserver gen-kube-config
+  import_tasks: gen-kube-config.yml
+# gen kube controller-manager config
+- name: ROLE kube task main sub gen-controller-manager-config
+  import_tasks: gen-controller-manager-config.yml
+# gen kube scheduler config
+- name: ROLE kube task main sub gen-scheduler-config
+  import_tasks: gen-scheduler-config.yml
+
+# start kube services
+# must generate config files (controller-manager and scheduler config) before starting services
 - name: ROLE kube task main sub kube-start TASK.  start kube services
   import_tasks: kube-start.yml
 
 # restart kubernetes cluster to make all configuration take effect
 - name: ROLE kube task main sub kube-restart TASK.   restart kube services
   import_tasks: kube-restart.yml
+

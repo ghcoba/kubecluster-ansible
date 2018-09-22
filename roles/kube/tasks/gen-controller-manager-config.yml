@@ -1,0 +1,70 @@
+---
+
+# file: roles/kube/tasks/gen-controller-manager-config.yml
+# generate controller-manage config file (set cluster, credential, context, and default context)
+# copy to ansible backup
+# copy to kube config dir
+
+# generate kube controller-manager config file
+- name: generate kube controller-manager config - set cluster
+  command: >
+    /usr/local/bin/kubectl config set-cluster kubernetes
+      --certificate-authority="{{ kube_ca_file }}" 
+      --embed-certs=true 
+      --server="{{ kube_load_balancer_apiserver_url }}"
+      --kubeconfig=controller-manager.conf
+  args:
+    chdir: "{{ kube_conf_dir }}"
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  run_once: true
+
+- name: generate kube controller-manager config - set credential
+  command: >
+    /usr/local/bin/kubectl config set-credentials system:kube-controller-manager 
+      --client-certificate="{{ kube_controller_manager_cert_file }}"
+      --embed-certs=true 
+      --client-key="{{ kube_controller_manager_key_file }}" 
+      --kubeconfig=controller-manager.conf
+  args:
+    chdir: "{{ kube_conf_dir }}"
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  run_once: true
+
+- name: generate kube controller-manager config - set context
+  command: >
+    /usr/local/bin/kubectl config set-context system:kube-controller-manager@kubernetes
+      --cluster=kubernetes
+      --user=system:kube-controller-manager
+      --kubeconfig=controller-manager.conf
+  args:
+    chdir: "{{ kube_conf_dir }}"
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  run_once: true
+
+- name: generate kube controller-manager config - set default context
+  command: >
+    /usr/local/bin/kubectl config use-context system:kube-controller-manager@kubernetes 
+      --kubeconfig=controller-manager.conf
+  args:
+    chdir: "{{ kube_conf_dir }}"
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  run_once: true
+
+# copy kube config file controller-manager.conf to ansible backup directory
+- name: fetch kube controller-manager config file controller-manager.conf to ansible backup directory
+  fetch:
+    src: "{{ kube_conf_dir }}/controller-manager.conf"
+    dest: "{{ ansible_tmp_kube_configs_dir }}/controller-manager.conf"
+    flat: yes
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  run_once: true
+
+# copy kube controller-manager config file to kube home directory of every master node
+- name: copy kube controller config file to kube home directory of every master node
+  copy:
+    dest: "{{ kube_conf_dir }}/controller-manager.conf"
+    src:  "{{ ansible_tmp_kube_configs_dir }}/controller-manager.conf"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_cert_group }}"
+  when: inventory_hostname in groups['kube-masters']
+  
