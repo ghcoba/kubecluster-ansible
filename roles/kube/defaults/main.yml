@@ -342,7 +342,7 @@ kube_etcd_key_file: "{{ etcd_client_key_file }}"
 #kube_apiserver_lb_address: "{% for host in groups['load-balancer'] %}{{ hostvars[host]['load_balancer_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
 
 # config file
-kube_controller_manager_kubeconfig_file: "{{ kube_conf_dir }}/ontroller-manager.conf"
+kube_controller_manager_kubeconfig_file: "{{ kube_conf_dir }}/controller-manager.conf"
 
 # cert file
 #kube_ca_cert_file:   # ca.pem, already defined
