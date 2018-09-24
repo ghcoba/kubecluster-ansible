@@ -1,0 +1,28 @@
+---
+
+# remove all tmp config directory on first node of kube-masters (we do not use anymore) 
+
+# remove tmp config directories
+
+- name: remove tmp master ca config directory on first node of masters if exist
+  file:
+    path: "{{ tmp_master_ca_config_dir }}"
+    state: absent
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+- name: remove tmp kube certs config directory on first node of masters if exist
+  file:
+    path: "{{ tmp_kube_certs_config_dir }}"
+    state: absent
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+- name: remove tmp etcd certs config directory on first node of masters if exist
+  file:
+    path: "{{ tmp_etcd_certs_config_dir }}"
+    state: absent
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+

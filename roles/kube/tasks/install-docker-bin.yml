@@ -1,0 +1,68 @@
+---
+
+- name: ensure config directory
+  file: 
+    path: "{{ docker_config_dir }}"
+    state: directory
+#  when: inventory_hostname in groups['docker-nodes']
+
+- name: ensure required packages for docker
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - yum-utils
+    - device-mapper-persistent-data
+    - lvm2
+#  when: inventory_hostname in groups['docker-nodes']
+
+- name: add docker ce repo
+  shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  args:
+    creates: /etc/yum.repos.d/docker-ce.repo
+  register: docker_yum_repo
+#  when: inventory_hostname in groups['docker-nodes']
+  
+#- name: make yum cache fast
+#  shell: yum makecache fast
+#  when: docker_yum_repo.changed
+  
+- name: install container selinux
+  yum:
+    name: "container-selinux"
+    state: present
+#  when: inventory_hostname in groups['docker-nodes']
+
+# if ansible setting not using local package, then download and install using yum from network downloading
+- name: install docker ce using yum download from network
+  yum:
+    name: "docker-ce-{{ docker_version }}"
+    state: present
+  notify: restart docker
+  when: 
+    - inventory_hostname in groups['docker-nodes']  
+    - ansible_use_local_package != true
+
+# if ansible setting using local package, then copy local package to docker node and install use yum 
+- name: copy local docker package to docker-nodes
+  copy:
+    src: "{{ ansible_tmp_docker_package_local_dir }}/docker-ce-{{ docker_version }}.x86_64.rpm"
+    dest: "{{docker_config_dir }}/docker-ce-{{ docker_version }}.x86_64.rpm"
+  when:
+    - inventory_hostname in groups['docker-nodes']
+    - ansible_use_local_package == true
+
+# if ansible setting using local package, then copy local package to docker node and install use $
+- name: install local docker package to docker-nodes using yum
+  yum:
+    name: "{{docker_config_dir }}/docker-ce-{{ docker_version }}.x86_64.rpm"
+    state: present
+  when:
+    - inventory_hostname in groups['docker-nodes']
+    - ansible_use_local_package == true
+
+#- name: copy dockerd daemon.json
+#  template: 
+#    src: daemon.json.j2
+#    dest: /etc/docker/daemon.json
+#  notify: restart docker

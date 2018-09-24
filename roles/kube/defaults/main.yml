@@ -4,7 +4,6 @@
 # tmp backup directory variables
 # tmp backup directory position: (ansible deploy dir kubecluster-ansible/) ./tmp/
 
-
 # ansible deploy tmp directory to store downloaded and generated data
 ansible_deploy_tmp_dir: tmp
 
@@ -19,12 +18,16 @@ ansible_tmp_kube_proxy_certs_backup_dir: "{{ ansible_deploy_tmp_dir }}/kube_prox
 ansible_tmp_kube_bin_backup_dir: "{{ ansible_deploy_tmp_dir }}/kube_bin"
 
 # tmp ca and cert config directory to generate and store ca/cert data: master ca, etcd cert, kube cert 
+# on first mode of kube-masters
 tmp_master_ca_config_dir: "/etc/tmp_master_ca_config"
 tmp_etcd_certs_config_dir: "/etc/tmp_etcd_certs_config"
 tmp_kube_certs_config_dir: "/etc/tmp_kube_certs_config"
+
 # as kubelet nodes have specific cert for each work node, tmp config directory is created at each node,
 # other tmp config dir is created at first node of cluster masters node
+# on all nodes of kube-nodes
 tmp_kubelet_certs_config_dir: "/etc/tmp_kubelet_certs_config"
+# on first node of kube-nodes
 tmp_kube_proxy_certs_config_dir: "/etc/tmp_kube_proxy_certs_config"
 
 # storage dir on deploy playbook tmp/(storage_dir) for using local binary and using local packege
@@ -51,7 +54,9 @@ ansible_tmp_kube_configs_dir: "{{ ansible_deploy_tmp_dir }}/kube_configs"
 
 
 # etcd version and download url
-etcd_version: 3.3.9
+#etcd_version: 3.3.9
+etcd_version: 3.1.15
+# https://github.com/etcd-io/etcd/releases/download/v3.1.15/etcd-v3.1.15-linux-amd64.tar.gz
 
 etcd_download_url_base: "https://github.com/etcd-io/etcd/releases/download/v{{ etcd_version}}"
 etcd_release: "etcd-v{{ etcd_version }}-linux-amd64" 
@@ -375,3 +380,31 @@ arg_str_context: " config set-context kubernetes-admin@kubernetes --cluster=kube
 arg_str_defaultcontext: " config use-context kubernetes-admin@kubernetes --kubeconfig=admin.conf"
 
 arg_str_kube_config: "{{ arg_str_cluster }}{{ arg_str_credentials }}{{ arg_str_context }}{{ arg_str_defaultcontext }}"
+
+
+####################################################################################
+# varibles for docker deploy
+
+# docker version and download url
+
+#docker_version: 18.03.1
+# https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-18.03.1.ce-1.el7.centos.x86_64.rpm
+#docker_download_url_base: "https://download.docker.com/linux/centos/7/x86_64/stable/Packages"
+#docker_release: "docker-ce-{{ docker_version }}.ce-1.el7.centos.x86_64"
+#docker_download_url: "{{ docker_download_url_base }}/{{ docker_release}}.rpm"
+
+docker_version: 18.06.1.ce-3.el7
+
+# docker binary, data, config, certs directory definition
+#docker_bin_path: /usr/local/bin
+#docker_data_dir: /var/lib/coker
+docker_config_dir: /etc/docker
+#docker_certs_dir: "{{ docker_config_dir }}/ssl"
+docker_option_graph: /var/lib/docker
+
+# docker cert group
+#docker_cert_group: docker
+
+#docker_user: docker
+#docker_group: docker
+

@@ -1,0 +1,18 @@
+---
+
+# remove all tmp config directory on first node of kube-nodes (we do not use anymore) 
+
+# remove tmp config directories
+
+- name: remove tmp kube proxy certs config directory on first node of kube-nodes if exist
+  file:
+    path: "{{ tmp_kube_proxy_certs_config_dir }}"
+    state: absent
+  run_once: true
+  delegate_to: "{{ groups['kube-nodes'][0] }}"
+
+- name: remove tmp kubelet certs connfig directory on all node of kube-nodes if exist
+  file:
+    path: "{{ tmp_kubelet_certs_config_dir }}"
+    state: absent
+  when: inventory_hostname in groups['kube-nodes']

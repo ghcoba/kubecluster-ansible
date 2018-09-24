@@ -115,7 +115,11 @@ cat <<EOF > apiserver.json
         
         $hosts_string,
 
+        "lb-node",
+        "api",
+
         "kubernetes",
+        "kubernetes.local",
         "kubernetes.default",
         "kubernetes.default.svc",
         "kubernetes.default.svc.cluster",

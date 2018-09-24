@@ -1,0 +1,7 @@
+---
+- name: STARTING docker-restart TASK.    restart docker service
+  systemd:
+    name: docker
+    state: restarted
+    enabled: true
+  when: inventory_hostname in groups['docker-nodes']

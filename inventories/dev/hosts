@@ -27,9 +27,9 @@ node2
 node3
 
 [docker-nodes]
-node3
 node4
 node5
+node6
 
 [ntp-master-node]
 node1

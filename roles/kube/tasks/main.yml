@@ -133,3 +133,16 @@
 - name: ROLE kube task main sub kube-restart TASK.   restart kube services
   import_tasks: kube-restart.yml
 
+##### install docker, and start docker service
+- name: ROLE kube task main sub install-docker-bin
+  import_tasks: install-docker-bin.yml
+
+- name: ROLE kube task main sub docker-restart
+  import_tasks: docker-restart.yml
+
+- name: post process - ROLE kube task main sub remove-tmp-config-dirs-of-masters
+  import_tasks: remove-tmp-config-dirs-of-masters.yml
+- name: post process - ROLE kube task main sub remove-tmp-config-dirs-of-nodes
+  import_tasks: remove-tmp-config-dirs-of-nodes.yml
+
+
