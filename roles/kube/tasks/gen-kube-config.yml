@@ -18,7 +18,7 @@
     chdir: "{{ kube_conf_dir }}/"
   when: inventory_hostname in groups['kube-masters']
 
-- name: generate kub config - set credential
+- name: generate kube config - set credential
 #  command: >
 #    "{{ kube_bin_dir }}"/kubectl config set-credentials kubernetes-admin 
 #      --client-certificate="{{ kube_admin_cert_file }}"
@@ -30,7 +30,7 @@
     chdir: "{{ kube_conf_dir }}/"
   when: inventory_hostname in groups['kube-masters']
 
-- name: generate kub config - set context
+- name: generate kube config - set context
 #  command: >
 #    "{{ kube_bin_dir }}"/kubectl config set-context kubernetes-admin@kubernetes
 #      --cluster=kubernetes
@@ -41,12 +41,7 @@
     chdir: "{{ kube_conf_dir }}/"
   when: inventory_hostname in groups['kube-masters']
 
-- name: cp kub config to home
-  command: cp /etc/kubernetes/admin.conf "{{ kube_home_dir }}/config"
-#  args: 
-  when: inventory_hostname in groups['kube-masters']
-
-- name: generate kub config - set default context
+- name: generate kube config - set default context
 #  command: >
 #    "{{ kube_bin_dir }}"/kubectl config use-context kubernetes-admin@kubernetes 
 #      --kubeconfig=admin.conf
@@ -55,23 +50,9 @@
     chdir: "{{ kube_conf_dir }}/"
   when: inventory_hostname in groups['kube-masters']
 
-## copy kube config file admin.conf to ansible backup directory
-#- name: fetch kube config file admin.conf to ansible backup directory
-#  fetch:
-#    src: "{{ kube_conf_dir }}/{{ item }}"
-##    dest: "{{ ansible_tmp_kube_configs_dir }}/{{ hostvars[inventory_hostname] }}/{{ item }}"
-#    dest: "{{ ansible_tmp_kube_configs_dir }}/{{ item }}"
-#    flat: yes
-#  with_items:
-#    - admin.conf
-#  when: inventory_hostname in groups['kube-masters']
 
-## copy kube config file to kube home directory of every master node
-#- name: copy kube config file to kube home directory of every master node
-#  copy:
-#    dest: "{{ kube_home_dir }}/config"
-##    src:  "{{ ansible_tmp_kube_configs_dir }}/{{ hostvars[inventory_hostname] }}/admin.conf"
-#    owner: "{{ kube_user }}"
-#    group: "{{ kube_cert_group }}"
-#  when: inventory_hostname in groups['kube-masters']
-  
+- name: cp kube config to home
+  command: cp /etc/kubernetes/admin.conf "{{ kube_home_dir }}/config"
+#  args:
+  when: inventory_hostname in groups['kube-masters']
+

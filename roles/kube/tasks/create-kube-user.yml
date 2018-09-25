@@ -2,11 +2,11 @@
 
 # not yet finished
 
-- name: STARTING create-kube-user TASK.  create system kube group in work mster nodes
+- name: STARTING create-kube-user TASK.  create system kube group in all cluster nodes
   group:
     name: "{{ kube_group }}"
     state: present
-  when: inventory_hostname in groups['kube-masters'] or inventory_hostname in groups['etcd-nodes']
+  when: inventory_hostname in groups['cluster']
 
 
 - name: create system kube user
@@ -17,10 +17,9 @@
     state: present
     system: yes
     home: "{{ kube_home_dir }}"
-#   ATTENTION: also addre kube user to etcd group, to enable kube user has rights to access etcd certs
+#   ATTENTION: also add kube user to etcd group, to enable kube user has rights to access etcd certs
     groups: "{{ kube_group }}, {{ etcd_group}}"
   when: inventory_hostname in groups['kube-masters'] or inventory_hostname in groups['etcd-nodes']
-
 
 - name: create and ensure kube_data_dir exists
   file:
@@ -31,7 +30,7 @@
     group: "{{ kube_group }}"
   when: inventory_hostname in groups['kube-masters']
 
-- name: create and ensure kube_bin__dir exists
+- name: create and ensure kube_bin_dir exists
   file:
     path: "{{ kube_bin_dir }}"
     recurse: yes
@@ -52,6 +51,15 @@
 - name: create and ensure kube_conf_dir exists
   file:
     path: "{{ kube_conf_dir }}"
+    recurse: yes
+    state: directory
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+  when: inventory_hostname in groups['kube-masters']
+
+- name: create and ensure kube manifests directory for static pods
+  file:
+    path: "{{ kube_pod_manifest_dir }}"
     recurse: yes
     state: directory
     owner: "{{ kube_user }}"

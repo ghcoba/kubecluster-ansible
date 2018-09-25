@@ -70,7 +70,29 @@
     - kubectl
     - kube-scheduler
     - mounter
+    - kubelet
+    - kube-proxy
   when: inventory_hostname in groups['kube-masters']    
+
+- name: copy kubectl and other binary kubelet will use to work node to kube-nodes
+  copy:
+    src: "{{ ansible_tmp_kube_bin_backup_dir }}/{{ item }}"
+    dest: "{{ kubelet_bin_path }}"
+    owner: "{{ kubelet_user }}"
+#    owner: root
+    group: "{{ kubelet_group }}"
+#    group: root
+    mode: 0750
+  with_items:
+    - kubectl
+    - kubeadm
+    - kube-aggregator
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+    - mounter
+  when: inventory_hostname in groups['kube-nodes']
+
 
 - name: copy kubelet binary for work node to kube-nodes
   copy:
@@ -96,4 +118,5 @@
     mode: 0750
   with_items:
     - kube-proxy
+
   when: inventory_hostname in groups['kube-nodes']

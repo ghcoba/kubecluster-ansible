@@ -1,0 +1,18 @@
+---
+
+#### generate kubernetes systemd service files for kube-nodes:
+#    1. kubelet service
+#    2. kube-proxy service
+#
+  
+- name: STARTING gen-kube-nodes-systemd TAKS. create kube kubelet systemd unit file
+  template: 
+    src: kubelet.service.j2
+    dest: /etc/systemd/system/kubelet.service
+  when: inventory_hostname in groups['kube-nodes']
+  
+- name: create kube kube-proxy systemd unit file
+  template:
+    src: kube-proxy.service.j2
+    dest: /etc/systemd/system/kube-proxy.service
+  when: inventory_hostname in groups['kube-nodes']

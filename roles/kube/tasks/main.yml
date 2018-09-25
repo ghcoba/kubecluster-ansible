@@ -117,9 +117,11 @@
 # gen kube-apiserver config and copy to kube home HOME/.kube
 - name: ROLE kube task main sub apiserver gen-kube-config
   import_tasks: gen-kube-config.yml
+
 # gen kube controller-manager config
 - name: ROLE kube task main sub gen-controller-manager-config
   import_tasks: gen-controller-manager-config.yml
+
 # gen kube scheduler config
 - name: ROLE kube task main sub gen-scheduler-config
   import_tasks: gen-scheduler-config.yml
@@ -133,6 +135,10 @@
 - name: ROLE kube task main sub kube-restart TASK.   restart kube services
   import_tasks: kube-restart.yml
 
+
+
+############################### DEPLOY KUBE-NODES
+
 ##### install docker, and start docker service
 - name: ROLE kube task main sub install-docker-bin
   import_tasks: install-docker-bin.yml
@@ -140,8 +146,29 @@
 - name: ROLE kube task main sub docker-restart
   import_tasks: docker-restart.yml
 
+- name: ROLE kube task main sub install-cni
+  import_tasks: install-cni.yml
+
+- name: ROLE gen-kube-nodes-systemd service file 
+  import_tasks: gen-kube-nodes-systemd.yml
+
+- name: ROLE gen-kubelet-config 
+  import_tasks: gen-kubelet-config.yml
+
+- name: ROLES gen-kube-proxy-config
+  import_tasks: gen-kube-proxy-config.yml
+
+- name: ROLE kube-nodes-start  - start services on kube-nodes
+  import_tasks: kube-nodes-start.yml
+
+#- name ROLE kube-nodes-restart - restart services on kube-nodes
+#  import_tasks: kube-nodes-restart.yml
+
+################################## POST PROC
+
 - name: post process - ROLE kube task main sub remove-tmp-config-dirs-of-masters
   import_tasks: remove-tmp-config-dirs-of-masters.yml
+
 - name: post process - ROLE kube task main sub remove-tmp-config-dirs-of-nodes
   import_tasks: remove-tmp-config-dirs-of-nodes.yml
 

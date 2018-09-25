@@ -1,0 +1,52 @@
+---
+
+# file: roles/kube/tasks/gen-kubelet-config.yml
+# generate kubelet config file (set cluster, credential, context, and default context)
+# copy to ansible backup
+# copy to kub home dire
+
+# generate kubelet config file for every master node
+- name: generate kublet config - set cluster
+#  command: >
+#    "{{ kube_bin_dir }}"/kubectl config set-cluster kubernetes
+#      --certificate-authority="{{ kube_ca_file }}" 
+#      --embed-certs=true 
+#      --server="{{ kube_kubelet_apiserver_url }}"
+#      --kubeconfig=kubelet.conf
+  command: "/usr/local/bin/kubectl {{ arg_str_kubelet_cluster }}"
+  args:
+    chdir: "{{ kube_conf_dir }}/"
+  when: inventory_hostname in groups['kube-nodes']
+
+- name: generate kubelet config - set credential
+#  command: >
+#    "{{ kube_bin_dir }}"/kubectl config set-credentials system:node:nodex 
+#      --client-certificate="{{ kube_kubelet_cert_file }}"
+#      --embed-certs=true 
+#      --client-key="{{ kube_kubelet_key_file }}" 
+#      --kubeconfig=kubelet.conf
+  command: "/usr/local/bin/kubectl  {{ arg_str_kubelet_credentials }}"
+  args:
+    chdir: "{{ kube_conf_dir }}/"
+  when: inventory_hostname in groups['kube-nodes']
+
+- name: generate kubelet config - set context
+#  command: >
+#    "{{ kube_bin_dir }}"/kubectl config set-context system:node:nodex@kubernetes
+#      --cluster=kubernetes
+#      --user=system:node:nodex
+#      --kubeconfig=kubelet.conf
+  command: "/usr/local/bin/kubectl  {{ arg_str_kubelet_context }}"
+  args:
+    chdir: "{{ kube_conf_dir }}/"
+  when: inventory_hostname in groups['kube-nodes']
+
+- name: generate kubelet config - set default context
+#  command: >
+#    "{{ kube_bin_dir }}"/kubectl config use-context system:node:nodex@kubernetes
+#      --kubeconfig=kubelet.conf
+  command: "/usr/local/bin/kubectl  {{ arg_str_kubelet_defaultcontext }}"
+  args:
+    chdir: "{{ kube_conf_dir }}/"
+  when: inventory_hostname in groups['kube-nodes']
+

@@ -8,7 +8,6 @@
     state: present
   when: inventory_hostname in groups['kube-nodes']
 
-
 - name: create system kubelet user
   user:
     name: "{{ kubelet_user }}"
@@ -21,9 +20,46 @@
   when: inventory_hostname in groups['kube-nodes']
 
 
+- name: STARTING create-kubelet-user TASK.  create system kubelet group in work nodes
+  group:
+    name: "{{ kube_group }}"
+    state: present
+  when: inventory_hostname in groups['kube-nodes']
+
+- name: create system kube user in kube-node
+  user:
+    name: "{{ kube_user }}"
+    comment: "kube master node user"
+    shell: /sbin/nologin
+    state: present
+    system: yes
+    home: "{{ kube_home_dir }}"
+    groups: "{{ kube_group }}, {{ kubelet_group }}" 
+  when: inventory_hostname in groups['kube-nodes']
+
+
 - name: create and ensure kubelet_data_dir exists
   file:
     path: "{{ kubelet_data_dir }}"
+    recurse: yes
+    state: directory
+    owner: "{{ kubelet_user }}"
+    group: "{{ kubelet_group }}"
+  when: inventory_hostname in groups['kube-nodes']
+
+
+- name: create kubelet config directory
+  file:
+    path: "{{ kubelet_conf_dir }}"
+    recurse: yes
+    state: directory
+    owner: "{{ kubelet_user }}"
+    group: "{{ kubelet_group }}"
+  when: inventory_hostname in groups['kube-nodes']
+
+- name: create kubelet manifests directory for static pod
+  file:
+    path: "{{ kube_pod_manifest_dir }}"
     recurse: yes
     state: directory
     owner: "{{ kubelet_user }}"

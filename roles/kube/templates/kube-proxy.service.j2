@@ -1,0 +1,24 @@
+{% macro get_host_ip() -%}
+   {{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}
+{%- endmacro -%}
+
+
+[Unit]
+Description=kube-proxy
+After=network.target
+
+[Service]
+WorkingDirectory=/var/lib/kube-proxy
+EnvironmentFile=-/etc/kubernetes/kube-proxy
+ExecStart=/usr/local/bin/kube-proxy \
+        --logtostderr=true \
+        --v=0 \
+        --bind-address={{ get_host_ip() }} \
+        --kubeconfig=/etc/kubernetes/kube-proxy.conf \
+        --cluster-cidr=10.244.0.0/16
+        
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+

@@ -38,6 +38,8 @@ ansible_tmp_etcd_package_local_dir: "{{ ansible_deploy_tmp_dir}}/etcd_package_lo
 ansible_tmp_etcd_bin_local_dir: "{{ ansible_deploy_tmp_dir}}/etcd_bin_local"
 ansible_tmp_docker_package_local_dir: "{{ ansible_deploy_tmp_dir}}/docker_package_local"
 ansible_tmp_flannel_package_local_dir: "{{ ansible_deploy_tmp_dir}}/flannel_package_local"
+ansible_tmp_cni_package_local_dir: "{{ ansible_deploy_tmp_dir}}/cni_package_local"
+ansible_tmp_cni_bin_local_dir: "{{ ansible_deploy_tmp_dir}}/cni_bin_local"
 
 # define if deployment will use local binary and package ( not using network downloading )
 ansible_use_local_package: true
@@ -239,9 +241,10 @@ apiserver_service_cluster_ip_range: "10.96.0.0/12"
 kubelet_bin_path: /usr/local/bin
 kubelet_data_dir: /var/lib/kubelet
 
-pod_manifest_path: "{{ kube_conf_dir }}/manifests"
+kube_pod_manifest_dir: "{{ kube_conf_dir }}/manifests"
 
-kubelet_conf_dir: "{{ kube_conf_dir }}/kubelet"
+kubelet_conf_dir: "{{ kube_conf_dir }}"
+kubelet_kubeconfig_file: "{{ kubelet_conf_dir }}/kubelet.conf"
 kubelet_certs_dir: "{{ kube_conf_dir }}/pki"
 
 #kubelet_user: root
@@ -381,6 +384,31 @@ arg_str_defaultcontext: " config use-context kubernetes-admin@kubernetes --kubec
 
 arg_str_kube_config: "{{ arg_str_cluster }}{{ arg_str_credentials }}{{ arg_str_context }}{{ arg_str_defaultcontext }}"
 
+# ============================================================================================
+# varibles for gen kubelet config
+
+kube_kubelet_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:5000"
+kube_kubelet_load_balancer_apiserver_ip: "{{ hostvars['lb-node']['host_ip_address'] }}"
+
+arg_str_kubelet_cluster: " config set-cluster kubernetes  --certificate-authority={{ kube_ca_file }} --embed-certs=true --server={{ kube_kubelet_load_balancer_apiserver_url }} --kubeconfig=kubelet.conf"
+arg_str_kubelet_credentials: " config set-credentials system:node:{{  hostvars[inventory_hostname] }} --client-certificate={{ kube_kubelet_cert_file }} --embed-certs=true --client-key={{ kube_kubelet_key_file }} --kubeconfig=kubelet.conf"
+arg_str_kubelet_context: " config set-context system:node:{{ hostvars[inventory_hostname] }}@kubernetes --cluster=kubernetes --user=system:node:{{  hostvars[inventory_hostname] }} --kubeconfig=kubelet.conf"
+arg_str_kubelet_defaultcontext: " config use-context system:node:{{ hostvars[inventory_hostname] }}@kubernetes --kubeconfig=kubelet.conf"
+
+arg_str_kubelet_kube_config: "{{ arg_str_kubelet_cluster }}{{ arg_str_kubelet_credentials }}{{ arg_str_kubelet_context }}{{ arg_str_kubeletdefaultcontext }}"
+
+# ============================================================================================
+# varibles for gen kube-proxy config
+
+kube_kube_proxy_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:5000"
+kube_kube_proxy_load_balancer_apiserver_ip: "{{ hostvars['lb-node']['host_ip_address'] }}"
+
+arg_str_kubeproxy_cluster: " config set-cluster kubernetes --certificate-authority={{ kube_ca_file }} --embed-certs=true --server={{ kube_kube_proxy_load_balancer_apiserver_url }} --kubeconfig=kube-proxy.conf"
+arg_str_kube_proxy_credentials: " config set-credentials system:kube-proxy --client-certificate={{ kube_kube_proxy_cert_file }} --embed-certs=true --client-key={{ kube_kube_proxy_key_file }} --kubeconfig=kube-proxy.conf"
+arg_str_kube_proxy_context: " config set-context system:kube-proxy@kubernetes --cluster=kubernetes --user=system:kube-proxy --kubeconfig=kube-proxy.conf"
+arg_str_kube_proxy_defaultcontext: " config use-context system:kube-proxy@kubernetes --kubeconfig=kube-proxy.conf"
+
+arg_str_kube_proxy_kube_config: "{{ arg_str_kube_proxy_cluster }}{{ arg_str_kube_proxy_credentials }}{{ arg_str_kube_proxy_context }}{{ arg_str_kube_proxydefaultcontext }}"
 
 ####################################################################################
 # varibles for docker deploy
@@ -397,9 +425,8 @@ docker_version: 18.06.1.ce-3.el7
 
 # docker binary, data, config, certs directory definition
 #docker_bin_path: /usr/local/bin
-#docker_data_dir: /var/lib/coker
+#docker_data_dir: /var/lib/docker
 docker_config_dir: /etc/docker
-#docker_certs_dir: "{{ docker_config_dir }}/ssl"
 docker_option_graph: /var/lib/docker
 
 # docker cert group
@@ -408,3 +435,27 @@ docker_option_graph: /var/lib/docker
 #docker_user: docker
 #docker_group: docker
 
+#####################################################################################
+# variables for cni deploy
+
+cni_version: 0.5.2
+# https://github.com/containernetworking/cni/releases/download/v0.5.2/cni-amd64-v0.5.2.tgz
+
+kube_cni_download_url_base: "https://github.com/containernetworking/cni/releases/download/v{{ cni_version }}"
+kube_cni_release: "cni-amd64-v{{ cni_version }}"
+kube_cni_download_url: "{{ kube_cni_download_url_base }}/{{ kube_cni_release }}.tgz"
+
+# on first node of kube-node
+kube_cni_download_dir: /etc/cni_download
+
+# cni binary, data, config, certs directory definition
+kube_cni_bin_dir: /opt/cni/bin
+
+#kube_cni_data_dir: /var/lib/cni
+kube_cni_conf_dir: /etc/cni/net.d
+
+# cni cert group
+#cni_cert_group: kube
+
+#cni_user: kube
+#cni_group: kube
