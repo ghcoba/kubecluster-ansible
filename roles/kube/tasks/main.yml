@@ -139,13 +139,14 @@
 
 ############################### DEPLOY KUBE-NODES
 
-##### install docker, and start docker service
+##### install docker, and start docker service on kube-nodes (already support remote and local install)
 - name: ROLE kube task main sub install-docker-bin
   import_tasks: install-docker-bin.yml
 
 - name: ROLE kube task main sub docker-restart
   import_tasks: docker-restart.yml
 
+##### install cni network add-on for kubenertes on all cluste nodes  (already support remove and local install)
 - name: ROLE kube task main sub install-cni
   import_tasks: install-cni.yml
 

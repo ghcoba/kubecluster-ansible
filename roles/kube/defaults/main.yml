@@ -422,6 +422,11 @@ arg_str_kube_proxy_kube_config: "{{ arg_str_kube_proxy_cluster }}{{ arg_str_kube
 #docker_download_url: "{{ docker_download_url_base }}/{{ docker_release}}.rpm"
 
 docker_version: 18.06.1.ce-3.el7
+# https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-18.06.1.ce-3.el7.x86_64.rpm 
+
+docker_download_url_base: "https://download.docker.com/linux/centos/7/x86_64/stable/Packages"
+docker_release: "docker-ce-{{ docker_version }}.x86_64"
+docker_download_url: "{{ docker_download_url_base }}/{{ docker_release }}.rpm"
 
 # docker binary, data, config, certs directory definition
 #docker_bin_path: /usr/local/bin

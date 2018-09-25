@@ -6,6 +6,7 @@
     state: directory
   delegate_to: "{{ groups['kube-nodes'][0] }}"
   run_once: true
+  when: ansible_use_local_package != true
   
 - name: check whether cni downloaded on the first node
   stat: 
@@ -13,6 +14,7 @@
   register: kube_cni_downloaded_check
   delegate_to: "{{ groups['kube-nodes'][0] }}"
   run_once: true
+  when: ansible_use_local_package != true
   
 - name: download cni on the first node
   get_url:
@@ -23,14 +25,17 @@
   register: download_cni
   delegate_to: "{{ groups['kube-nodes'][0] }}"
   run_once: true
-  when: not kube_cni_downloaded_check.stat.exists
-  
+  when: 
+    - not kube_cni_downloaded_check.stat.exists
+    -   when: ansible_use_local_package != true
+
 - name: check whether cni tar extracted on the first node
   stat: 
     path: "{{ kube_cni_download_dir }}/cnitool"
   register: kube_cni_release_tar_check
   delegate_to: "{{ groups['kube-nodes'][0] }}"
   run_once: true
+  when: ansible_use_local_package != true
   
 - name: extract cni tar file
   unarchive:
@@ -39,8 +44,10 @@
     remote_src: yes
   run_once: true
   delegate_to: "{{ groups['kube-nodes'][0] }}"
-  when: not kube_cni_release_tar_check.stat.exists
-  
+  when: 
+    - not kube_cni_release_tar_check.stat.exists
+    - ansible_use_local_package != true
+
 - name: fetch cni package from the first node
   fetch:
     src: "{{ kube_cni_download_dir }}/{{ kube_cni_release }}.tgz"
@@ -48,6 +55,7 @@
     flat: yes
   run_once: true
   delegate_to: "{{ groups['kube-nodes'][0] }}"
+  when: ansible_use_local_package != true
 
 - name: fetch cni binary from the first node
   fetch:
@@ -68,6 +76,15 @@
     - noop
     - ptp
     - tuning
+  when: ansible_use_local_package != true
+
+- name: remove cni download dir
+  file:
+    path: "{{ kube_cni_download_dir }}"
+    state: absent
+  delegate_to: "{{ groups['kube-nodes'][0] }}"
+  run_once: true
+  when: ansible_use_local_package != true
   
 - name: create cni bin and conf dir
   file: 
@@ -81,7 +98,7 @@
     - "{{ kube_cni_conf_dir }}"
     - "{{ kube_cni_bin_dir }}"
   when: inventory_hostname in groups['kube-nodes']
-    
+
 - name: copy cni binary
   copy:
     src: "{{ ansible_tmp_cni_bin_local_dir }}/{{ item }}"

@@ -36,7 +36,7 @@
 # if ansible setting not using local package, then download and install using yum from network downloading
 - name: install docker ce using yum download from network
   yum:
-    name: "docker-ce-{{ docker_version }}"
+    name: "{{ docker_download_url }}"
     state: present
   notify: restart docker
   when: 
@@ -46,8 +46,8 @@
 # if ansible setting using local package, then copy local package to docker node and install use yum 
 - name: copy local docker package to docker-nodes
   copy:
-    src: "{{ ansible_tmp_docker_package_local_dir }}/docker-ce-{{ docker_version }}.x86_64.rpm"
-    dest: "{{docker_config_dir }}/docker-ce-{{ docker_version }}.x86_64.rpm"
+    src: "{{ ansible_tmp_docker_package_local_dir }}/{{ docker_release }}.rpm"
+    dest: "{{docker_config_dir }}/{{ docker_release }}.rpm"
   when:
     - inventory_hostname in groups['docker-nodes']
     - ansible_use_local_package == true
@@ -55,7 +55,7 @@
 # if ansible setting using local package, then copy local package to docker node and install use $
 - name: install local docker package to docker-nodes using yum
   yum:
-    name: "{{docker_config_dir }}/docker-ce-{{ docker_version }}.x86_64.rpm"
+    name: "{{docker_config_dir }}/{{ docker_release }}.rpm"
     state: present
   when:
     - inventory_hostname in groups['docker-nodes']
