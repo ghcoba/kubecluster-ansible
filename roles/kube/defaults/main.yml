@@ -391,9 +391,17 @@ kube_kubelet_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_
 kube_kubelet_load_balancer_apiserver_ip: "{{ hostvars['lb-node']['host_ip_address'] }}"
 
 arg_str_kubelet_cluster: " config set-cluster kubernetes  --certificate-authority={{ kube_ca_file }} --embed-certs=true --server={{ kube_kubelet_load_balancer_apiserver_url }} --kubeconfig=kubelet.conf"
-arg_str_kubelet_credentials: " config set-credentials system:node:{{  hostvars[inventory_hostname] }} --client-certificate={{ kube_kubelet_cert_file }} --embed-certs=true --client-key={{ kube_kubelet_key_file }} --kubeconfig=kubelet.conf"
-arg_str_kubelet_context: " config set-context system:node:{{ hostvars[inventory_hostname] }}@kubernetes --cluster=kubernetes --user=system:node:{{  hostvars[inventory_hostname] }} --kubeconfig=kubelet.conf"
-arg_str_kubelet_defaultcontext: " config use-context system:node:{{ hostvars[inventory_hostname] }}@kubernetes --kubeconfig=kubelet.conf"
+arg_str_kubelet_credentials_1: " config set-credentials"
+#arg_str_kubelet_credentials_2: " system:node:{{ hostvars[inventory_hostname] }}" 
+arg_str_kubelet_credentials_3: "--client-certificate={{ kube_kubelet_cert_file }} --embed-certs=true --client-key={{ kube_kubelet_key_file }} --kubeconfig=kubelet.conf"
+arg_str_kubelet_context_1: " config set-context"
+#arg_str_kubelet_context_2: " system:node:{{ hostvars[inventory_hostname] }}@kubernetes"
+arg_str_kubelet_context_3: " --cluster=kubernetes"
+#arg_str_kubelet_context_4: " --user=system:node:{{  hostvars[inventory_hostname] }}"
+arg_str_kubelet_context_5: " --kubeconfig=kubelet.conf"
+arg_str_kubelet_defaultcontext_1: " config use-context"
+#arg_str_kubelet_defaultcontext_2: " system:node:{{ hostvars[inventory_hostname] }}@kubernetes"
+arg_str_kubelet_defaultcontext_3: " --kubeconfig=kubelet.conf"
 
 arg_str_kubelet_kube_config: "{{ arg_str_kubelet_cluster }}{{ arg_str_kubelet_credentials }}{{ arg_str_kubelet_context }}{{ arg_str_kubeletdefaultcontext }}"
 
@@ -403,7 +411,7 @@ arg_str_kubelet_kube_config: "{{ arg_str_kubelet_cluster }}{{ arg_str_kubelet_cr
 kube_kube_proxy_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:5000"
 kube_kube_proxy_load_balancer_apiserver_ip: "{{ hostvars['lb-node']['host_ip_address'] }}"
 
-arg_str_kubeproxy_cluster: " config set-cluster kubernetes --certificate-authority={{ kube_ca_file }} --embed-certs=true --server={{ kube_kube_proxy_load_balancer_apiserver_url }} --kubeconfig=kube-proxy.conf"
+arg_str_kube_proxy_cluster: " config set-cluster kubernetes --certificate-authority={{ kube_ca_file }} --embed-certs=true --server={{ kube_kube_proxy_load_balancer_apiserver_url }} --kubeconfig=kube-proxy.conf"
 arg_str_kube_proxy_credentials: " config set-credentials system:kube-proxy --client-certificate={{ kube_kube_proxy_cert_file }} --embed-certs=true --client-key={{ kube_kube_proxy_key_file }} --kubeconfig=kube-proxy.conf"
 arg_str_kube_proxy_context: " config set-context system:kube-proxy@kubernetes --cluster=kubernetes --user=system:kube-proxy --kubeconfig=kube-proxy.conf"
 arg_str_kube_proxy_defaultcontext: " config use-context system:kube-proxy@kubernetes --kubeconfig=kube-proxy.conf"

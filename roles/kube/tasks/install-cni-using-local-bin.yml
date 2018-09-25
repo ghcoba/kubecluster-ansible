@@ -1,0 +1,42 @@
+---
+    
+- name: remove cni download dir
+  file:
+    path: "{{ kube_cni_download_dir }}"
+    state: absent
+  delegate_to: "{{ groups['kube-nodes'][0] }}"
+  run_once: true
+  
+- name: create cni bin and conf dir
+  file: 
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0751
+    recurse: yes
+  with_items:
+    - "{{ kube_cni_conf_dir }}"
+    - "{{ kube_cni_bin_dir }}"
+  when: inventory_hostname in groups['kube-nodes']
+
+- name: copy cni binary
+  copy:
+    src: "{{ ansible_tmp_cni_bin_local_dir }}/{{ item }}"
+    dest: "{{ kube_cni_bin_dir }}"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0751
+  with_items:
+    - bridge
+    - cnitool
+    - dhcp
+    - flannel
+    - host-local
+    - ipvlan
+    - loopback
+    - macvlan
+    - noop
+    - ptp
+    - tuning
+  when: inventory_hostname in groups['kube-nodes']

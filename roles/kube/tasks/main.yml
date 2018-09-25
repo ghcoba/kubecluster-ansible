@@ -60,6 +60,8 @@
 
 ######      DEPLOY ETCD CLUSTER
 
+# install binary on etcd nodes
+
 # download and install etcd binary files
 - name: ROLE kube TASK main sub install-etcd-bin TASK.  download and install etcd bin
   import_tasks: install-etcd-bin.yml
@@ -70,11 +72,13 @@
   import_tasks: install-etcd-bin-using-local-bin.yml
   when: ansible_use_local_package == true
 
-##### config and restart etcd cluster  
+
+# config service for etcd nodes 
 
 - name: ROLE kube task main sub gen-etcd-systemd TASK.  generate etcd systemd and config
   import_tasks: gen-etcd-systemd.yml
 
+# config single node time sync source for cluster 
 # setup single node time sync source for etcd cluster
 - name: ROLE kube task main sub change-ntp-config TASK.  change ntp config to single time src and restart ntp
   import_tasks: change-ntp-config.yml
@@ -83,9 +87,11 @@
 - name: ROLE kube task main sub change-firewall-config TASK.  change firewall config to enable port 2370 2380 ntp and reload rules
   import_tasks: change-firewall-config.yml
 
+
 # start etcd service  
-- name: ROLE kube task main sub etcd-start TASK.  start etcd
-  import_tasks: etcd-start.yml
+
+#- name: ROLE kube task main sub etcd-start TASK.  start etcd
+#  import_tasks: etcd-start.yml
 
 # restart etcd cluster to make all configuration take effect  
 - name: ROLE kube task main sub etcd-restart TASK.   restart etcd
@@ -94,6 +100,8 @@
 
 
 ########   DEPLOY KEBERNETES ON MASTER NODES
+
+# download or copy kubernetes binary files
 
 # download and install kubernetes binary files
 - name: ROLE kube TASK main sub install-kubernetes-bin TASK.  download and install kub$
@@ -106,13 +114,16 @@
   when: ansible_use_local_package == true
 
 
-##### config kubernetes cluster service
+# config kubernetes cluster service
+
 - name: ROLE kube task main sub gen-kube-systemd TASK.  generate kube systemd and config
   import_tasks: gen-kube-systemd.yml
 
-##### generate kube-apiserver, kube-controller-manager, kube-scheduler config
-# controller-manager and scheduler service need these config file setting - must be
-# (run) generated before starting services
+
+# generate config for  kube-apiserver, kube-controller-manager, kube-scheduler service
+
+# attention: controller-manager and scheduler service is set to NEED these config settings
+# we MUST (run) generated before starting those services
 
 # gen kube-apiserver config and copy to kube home HOME/.kube
 - name: ROLE kube task main sub apiserver gen-kube-config
@@ -126,10 +137,11 @@
 - name: ROLE kube task main sub gen-scheduler-config
   import_tasks: gen-scheduler-config.yml
 
+
 # start kube services
 # must generate config files (controller-manager and scheduler config) before starting services
-- name: ROLE kube task main sub kube-start TASK.  start kube services
-  import_tasks: kube-start.yml
+#- name: ROLE kube task main sub kube-start TASK.  start kube services
+#  import_tasks: kube-start.yml
 
 # restart kubernetes cluster to make all configuration take effect
 - name: ROLE kube task main sub kube-restart TASK.   restart kube services
@@ -139,19 +151,35 @@
 
 ############################### DEPLOY KUBE-NODES
 
-##### install docker, and start docker service on kube-nodes (already support remote and local install)
+# install docker binary on docker nodes
+
+# install docker binary using remote download or using local package
 - name: ROLE kube task main sub install-docker-bin
   import_tasks: install-docker-bin.yml
 
 - name: ROLE kube task main sub docker-restart
   import_tasks: docker-restart.yml
 
-##### install cni network add-on for kubenertes on all cluste nodes  (already support remove and local install)
+
+# install cni network addon for kubernetes on all cluste nodes
+
+# instal using remote package - when option is not ansible_use_local_package
 - name: ROLE kube task main sub install-cni
   import_tasks: install-cni.yml
+  when: ansible_use_local_package != true 
+# install using local package - when option is ansible_use_local_package
+- name: ROLE kube task main sub install-cni-using-local-bin
+  import_tasks: install-cni-using-local-bin.yml
+  when: ansible_use_local_package == true
+
+
+# generate system service file for kubelet and kube-proxy service on kube-nodes
 
 - name: ROLE gen-kube-nodes-systemd service file 
   import_tasks: gen-kube-nodes-systemd.yml
+
+
+# generated service config file for kublet and kube-proxy service
 
 - name: ROLE gen-kubelet-config 
   import_tasks: gen-kubelet-config.yml
@@ -159,11 +187,16 @@
 - name: ROLES gen-kube-proxy-config
   import_tasks: gen-kube-proxy-config.yml
 
-- name: ROLE kube-nodes-start  - start services on kube-nodes
-  import_tasks: kube-nodes-start.yml
 
-#- name ROLE kube-nodes-restart - restart services on kube-nodes
-#  import_tasks: kube-nodes-restart.yml
+# start/restart service (kubelet, kube-proxy)
+
+#- name: ROLE kube-nodes-start  - start services on kube-nodes
+#  import_tasks: kube-nodes-start.yml
+
+- name: ROLE kube-nodes-restart - restart services on kube-nodes
+  import_tasks: kube-nodes-restart.yml
+
+
 
 ################################## POST PROC
 

@@ -20,7 +20,7 @@
   shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
   args:
     creates: /etc/yum.repos.d/docker-ce.repo
-  register: docker_yum_repo
+#  register: docker_yum_repo
 #  when: inventory_hostname in groups['docker-nodes']
   
 #- name: make yum cache fast
@@ -43,7 +43,7 @@
     - inventory_hostname in groups['docker-nodes']  
     - ansible_use_local_package != true
 
-# if ansible setting using local package, then copy local package to docker node and install use yum 
+# if ansible setting using local package, then copy local package to docker nodes 
 - name: copy local docker package to docker-nodes
   copy:
     src: "{{ ansible_tmp_docker_package_local_dir }}/{{ docker_release }}.rpm"
@@ -52,7 +52,7 @@
     - inventory_hostname in groups['docker-nodes']
     - ansible_use_local_package == true
 
-# if ansible setting using local package, then copy local package to docker node and install use $
+# if ansible setting using local package, then install use yum local package
 - name: install local docker package to docker-nodes using yum
   yum:
     name: "{{docker_config_dir }}/{{ docker_release }}.rpm"

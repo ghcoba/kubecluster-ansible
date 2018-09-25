@@ -18,6 +18,20 @@
     chdir: "{{ kube_conf_dir }}/"
   when: inventory_hostname in groups['kube-nodes']
 
+- debug:
+    msg: "arg_str_kubelet_cre.. {{ arg_str_kubelet_credentials_1 }}"
+  when: inventory_hostname in groups['kube-nodes']
+
+- debug:
+    msg: "arg_str_kubelet_cre.. {{ arg_str_kubelet_credentials_3 }}"
+  when: inventory_hostname in groups['kube-nodes']
+
+# get hostname of current node
+- name: get hostname
+  command: hostname
+  register: hostname_current
+  when: inventory_hostname in groups['kube-nodes']
+
 - name: generate kubelet config - set credential
 #  command: >
 #    "{{ kube_bin_dir }}"/kubectl config set-credentials system:node:nodex 
@@ -25,7 +39,7 @@
 #      --embed-certs=true 
 #      --client-key="{{ kube_kubelet_key_file }}" 
 #      --kubeconfig=kubelet.conf
-  command: "/usr/local/bin/kubectl  {{ arg_str_kubelet_credentials }}"
+  command: "/usr/local/bin/kubectl  {{ arg_str_kubelet_credentials_1 }}  system:node:{{ hostname_current['stdout'] }} {{ arg_str_kubelet_credentials_3 }}"
   args:
     chdir: "{{ kube_conf_dir }}/"
   when: inventory_hostname in groups['kube-nodes']
@@ -36,7 +50,7 @@
 #      --cluster=kubernetes
 #      --user=system:node:nodex
 #      --kubeconfig=kubelet.conf
-  command: "/usr/local/bin/kubectl  {{ arg_str_kubelet_context }}"
+  command: "/usr/local/bin/kubectl {{ arg_str_kubelet_context_1 }} system:node:{{ hostname_current['stdout'] }}@kubernetes {{ arg_str_kubelet_context_3 }} --user=system:node:{{ hostname_current['stdout'] }} {{ arg_str_kubelet_context_5 }} "
   args:
     chdir: "{{ kube_conf_dir }}/"
   when: inventory_hostname in groups['kube-nodes']
@@ -45,7 +59,7 @@
 #  command: >
 #    "{{ kube_bin_dir }}"/kubectl config use-context system:node:nodex@kubernetes
 #      --kubeconfig=kubelet.conf
-  command: "/usr/local/bin/kubectl  {{ arg_str_kubelet_defaultcontext }}"
+  command: "/usr/local/bin/kubectl  {{ arg_str_kubelet_defaultcontext_1 }}  system:node:{{ hostname_current['stdout'] }}@kubernetes  {{ arg_str_kubelet_defaultcontext_3 }}"
   args:
     chdir: "{{ kube_conf_dir }}/"
   when: inventory_hostname in groups['kube-nodes']
