@@ -1,0 +1,28 @@
+---
+
+# create flannel service pre-process shell script
+- name: starting ROLE kube tasks gen-flannel-systemd  - copy remove-dock0.sh 
+  copy:
+    src: "{{ flannel_remove_docker0_script_file }}"
+    dest: "{{ flannel_bin_dir }}/remove-docker0.sh"
+
+# create flannel service post-process shell script
+- name: create flannel service post-process shell script
+  copy:
+    src: "{{ ansible_tmp_flannel_bin_local_dir }}/mk-docker-opts.sh"
+    dest: "{{ flannel_bin_dir }}/mk-docker-opts.sh"
+
+#### generate flannel systemd service files 
+  
+- name: create kube apiserver systemd unit file
+  template: 
+    src: flannel.service.j2
+    dest: /etc/systemd/system/flannel.service
+#  when: inventory_hostname in groups['kube-masters']
+  
+# create flannel for cni interface
+- name: create cni interface for flannel
+  template:
+    src: 00-flanneld-cni.conf.j2
+    dest: "{{ kube_cni_conf_dir }}/00-flanneld-cni.conf"
+#  when: inventory_hostname in groups['kube-nodes']

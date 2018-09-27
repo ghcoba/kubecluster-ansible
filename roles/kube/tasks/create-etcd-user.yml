@@ -1,11 +1,12 @@
 ---
 
-- name: STARTING create-etcd-user TASK.  create system etcd group
+# create etcd grou and etcd user on all nodes
+# nodes with etcdctl, kubectl, flannel will need etcd access rights
+
+- name: STARTING create-etcd-user TASK.  create system etcd group on etcd-nodes, kube-masters, kube-nodes
   group:
     name: "{{ etcd_group }}"
     state: present
-  when: inventory_hostname in groups['etcd-nodes']
-
 
 - name: create system etcd user
   user:
@@ -16,7 +17,7 @@
     system: yes
     home: "{{ etcd_data_dir }}"
     groups: "{{ etcd_group }}"
-  when: inventory_hostname in groups['etcd-nodes']
+#  when: inventory_hostname in groups['etcd-nodes']
 
 
 - name: ensure etcd_data_dir exists
@@ -26,4 +27,4 @@
     state: directory
     owner: "{{ etcd_user }}"
     group: "{{ etcd_group }}"
-  when: inventory_hostname in groups['etcd-nodes']
+#  when: inventory_hostname in groups['etcd-nodes']

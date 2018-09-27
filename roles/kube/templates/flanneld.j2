@@ -1,0 +1,26 @@
+{% macro initial_cluster() -%}
+{% for host in groups['etcd-nodes'] -%}
+  https://{{ hostvars[host]['etcd_machine_address'] }}:{{ etcd_client_port }}
+  {%- if not loop.last -%},{%- endif -%}
+{%- endfor -%}
+{% endmacro -%}
+
+# file: /etc/kubernetes/flanneld - flannel service configuration options
+
+# etcd url location
+FLANNEL_ETCD="{{ initial_cluster() }}"
+FLANNEL_ETCD_ENDPOINTS="{{ initial_cluster() }}"
+
+# etcd config key in etcd - flannel service use this key to access configuration from etcd
+FLANNEL_ETCD_KEY={{ flannel_etcd_key }}
+FLANNEL_ETCD_PREFIX={{ flannel_etcd_key }}
+
+FLANNEL_ETCD_CAFILE="{{ flannel_etcd_ca_file }}"
+FLANNEL_ETCD_CERTFILE="{{ flannel_etcd_client_cert_file }}"
+FLANNEL_ETCD_KEYFILE="{{ flannel_etcd_client_key_file }}"
+FLANNEL_IFACE="{{ flannel_iface }}"
+FLANNEL_IP_MASQ=""
+
+# any additional option may want to pass
+#FLANNEL_OPTIONS=""
+

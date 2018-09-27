@@ -40,7 +40,7 @@
     state: present
   notify: restart docker
   when: 
-    - inventory_hostname in groups['docker-nodes']  
+#    - inventory_hostname in groups['docker-nodes']  
     - ansible_use_local_package != true
 
 # if ansible setting using local package, then copy local package to docker nodes 
@@ -49,7 +49,7 @@
     src: "{{ ansible_tmp_docker_package_local_dir }}/{{ docker_release }}.rpm"
     dest: "{{docker_config_dir }}/{{ docker_release }}.rpm"
   when:
-    - inventory_hostname in groups['docker-nodes']
+#    - inventory_hostname in groups['docker-nodes']
     - ansible_use_local_package == true
 
 # if ansible setting using local package, then install use yum local package
@@ -58,7 +58,7 @@
     name: "{{docker_config_dir }}/{{ docker_release }}.rpm"
     state: present
   when:
-    - inventory_hostname in groups['docker-nodes']
+#    - inventory_hostname in groups['docker-nodes']
     - ansible_use_local_package == true
 
 #- name: copy dockerd daemon.json

@@ -1,0 +1,36 @@
+---
+    
+- name: start ROLE kube task main sub install-flannel-using-local-bin task. remove flannel download dir if exist
+  file:
+    path: "{{ flannel_download_dir }}"
+    state: absent
+  delegate_to: "{{ groups['kube-nodes'][0] }}"
+  run_once: true
+  
+#- name: create flannel bin and conf dir
+#  file:
+#    path: "{{ item }}"
+#    state: directory
+#    owner: root
+#    group: root
+#    mode: 0751
+#    recurse: yes
+#  with_items:
+#    - "{{ flannel_config_dir }}"
+#    - "{{ flannel_bin_dir }}"
+#  when: inventory_hostname in groups['cluster']
+
+# copy flannel binary to all cluster node (include kube-masters, kube-nodes)
+- name: copy flannel binary to kube-masters and kube-nodes from local
+  copy:
+    src: "{{ ansible_tmp_flannel_bin_local_dir }}/{{ item }}"
+    dest: "{{ flannel_bin_dir }}"
+    owner: "{{ flannel_user }}"
+    group: "{{ flannel_group }}"
+    mode: 0751
+  with_items:
+    - flanneld
+    - mk-docker-opts.sh
+  when: inventory_hostname in groups['kube-nodes'] or inventory_hostname in groups['kube-masters']
+
+

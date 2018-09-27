@@ -1,0 +1,10 @@
+---
+
+# generate docker service file after docker-ce installtion
+# to add flannel integration
+
+- name: STARTING gen-docker-systemd tasks - create systemd unit file
+  template:
+    src: docker.service.j2
+    dest: /usr/lib/systemd/system/docker.service
+#  when: inventory_hostname in groups['kube-masters']

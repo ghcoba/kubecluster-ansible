@@ -1,0 +1,18 @@
+---
+
+# create etcd config key on etcd
+
+- name: copy flannel network config json file to node
+  template:
+    src: flannel-config-vxlan.json.j2
+    dest: "{{ flannel_network_config_key_json_file }}"
+
+
+#- name: create etcd config key on etcd
+#  shell: /usr/local/bin/etcdctl --ca-file=/etc/etcd/ssl/etcd-ca.pem --cert-file=/etc/etcd/ssl/etcd-client.pem --key-file=/etc/etcd/ssl/etcd-client-key.pem --endpoints=https://{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:2379 set {{ flannel_etcd_key }}/config  {{ flannel_network_config_str }}
+#  args:
+#    chdir: /directory 
+#    creates: /filename
+#  delegate_to: "{{ groups['etcd-nodes'][0] }}"
+#  run_once: true
+

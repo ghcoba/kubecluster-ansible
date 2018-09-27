@@ -23,7 +23,8 @@
   delegate_to: "{{ groups['kube-masters'][0] }}"
 
 
-# create etcd cert dirctory on all node in etcd cluster
+# create etcd cert dirctory on all node in etcd cluster (also create cert dir in kube-nodes
+#    to make flannel has right to get cert for access etcd as client)
 - name: create and ensure etcd certs directory on all etcd nodes of etcd cluster 
   file:
     path: "{{ etcd_certs_dir }}"
@@ -31,7 +32,7 @@
     owner: etcd
     group: etcd
     recurse: yes
-  when: inventory_hostname in groups['etcd-nodes']
+#  when: inventory_hostname in groups['etcd-nodes']
 
 
 # copy make etcd cert script to tmp etcd config directory on first kub master node   
@@ -198,3 +199,42 @@
     - "{{ etcd_client_cert_file }}"
     - "{{ etcd_client_key_file }}"
   when: inventory_hostname in groups['etcd-nodes']
+
+
+# copy client cert to kube-nodes
+- name: copy ansible tmp backup certs to all kube-nodes for flannel to get cert file
+  copy:
+    dest: "{{ etcd_certs_dir }}/{{ item }}"
+    src:  "{{ ansible_tmp_etcd_certs_backup_dir }}/{{ item }}"
+    owner: "{{ etcd_cert_group }}"
+    group: "{{ etcd_cert_group }}"
+  with_items:
+    - "{{ etcd_ca_filename }}"
+#    - "{{ etcd_ca_key_filename }}"
+#    - "{{ etcd_server_cert_filename }}"
+#    - "{{ etcd_server_key_filename }}"
+#    - "{{ etcd_peer_ca_filename }}"
+#    - "{{ etcd_peer_cert_filename }}"
+#    - "{{ etcd_peer_key_filename }}"
+    - "{{ etcd_client_cert_filename }}"
+    - "{{ etcd_client_key_filename }}"
+  when: inventory_hostname in groups['kube-nodes']
+
+# change owner of ca and cert files on all kube-nodes
+- name: ensure etcd certs permission for kube-nodes
+  file:
+    path: "{{ item }}"
+    state: file
+    owner: etcd
+    mode: 0640
+  with_items:
+    - "{{ etcd_ca_file }}"
+#    - "{{ etcd_ca_key_file }}"
+#    - "{{ etcd_server_cert_file }}"
+#    - "{{ etcd_server_key_file }}"
+#    - "{{ etcd_peer_ca_file }}"
+#    - "{{ etcd_peer_cert_file }}"
+#    - "{{ etcd_peer_key_file }}"
+    - "{{ etcd_client_cert_file }}"
+    - "{{ etcd_client_key_file }}"
+  when: inventory_hostname in groups['kube-nodes']

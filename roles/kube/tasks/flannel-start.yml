@@ -1,0 +1,10 @@
+---
+
+- name: STARTING flannel-start TASK.    start flannel network service
+  systemd:
+    name: flannel
+    daemon_reload: yes
+    state: started
+    enabled: yes
+#  when: inventory_hostname in groups['kube-masters']
+

@@ -18,7 +18,7 @@
   with_items:
     - "{{ kube_cni_conf_dir }}"
     - "{{ kube_cni_bin_dir }}"
-  when: inventory_hostname in groups['kube-nodes']
+#  when: inventory_hostname in groups['kube-nodes']
 
 - name: copy cni binary
   copy:
@@ -39,4 +39,4 @@
     - noop
     - ptp
     - tuning
-  when: inventory_hostname in groups['kube-nodes']
+#  when: inventory_hostname in groups['kube-nodes']

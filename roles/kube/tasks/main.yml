@@ -99,6 +99,47 @@
 
 
 
+#######  DEPLOY FLANNEL NETWORK ON KUBE-NODES and KUBE-MASTERS
+
+# create flannel config key on etcd
+- name: create flannel config key on etcd
+  import_tasks: create-flannel-key-on-etcd.yml
+
+# install flannel binary
+- name: install flannel binary using remove
+  import_tasks: install-flannel.yml
+  when: ansible_use_local_package != true
+- name: install flannel binary using local binary
+  import_tasks: install-flannel-using-local-bin.yml
+  when: ansible_use_local_package == true
+
+# generate flannel service systemd unit file
+- name: generate flannel service systemd unit file
+  import_tasks: gen-flannel-systemd.yml
+
+# start/restart flannel service
+- name: restart flannel service
+  import_tasks: flannel-restart.yml
+
+
+
+####### INSTALL DOCKER ON KUBE-NODES (deploy on kube-masters alos, but not use now )
+
+# install docker binary on docker nodes
+
+# install docker binary using remote download or using local package
+- name: ROLE kube task main sub install-docker-bin
+  import_tasks: install-docker-bin.yml
+
+# generate docker service systemd unit file to get flannel network integration
+- name: generate docker systemd unit file with flannel network integration
+  import_tasks: gen-docker-systemd.yml
+
+- name: ROLE kube task main sub docker-restart
+  import_tasks: docker-restart.yml
+
+
+
 ########   DEPLOY KEBERNETES ON MASTER NODES
 
 # download or copy kubernetes binary files
@@ -150,15 +191,6 @@
 
 
 ############################### DEPLOY KUBE-NODES
-
-# install docker binary on docker nodes
-
-# install docker binary using remote download or using local package
-- name: ROLE kube task main sub install-docker-bin
-  import_tasks: install-docker-bin.yml
-
-- name: ROLE kube task main sub docker-restart
-  import_tasks: docker-restart.yml
 
 
 # install cni network addon for kubernetes on all cluste nodes
