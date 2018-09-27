@@ -5,20 +5,27 @@
   copy:
     src: "{{ flannel_remove_docker0_script_file }}"
     dest: "{{ flannel_bin_dir }}/remove-docker0.sh"
+    mode: 0751
 
 # create flannel service post-process shell script
 - name: create flannel service post-process shell script
   copy:
     src: "{{ ansible_tmp_flannel_bin_local_dir }}/mk-docker-opts.sh"
     dest: "{{ flannel_bin_dir }}/mk-docker-opts.sh"
+    mode: 0751
 
 #### generate flannel systemd service files 
   
-- name: create kube apiserver systemd unit file
+- name: create kube flannel systemd unit file
   template: 
     src: flannel.service.j2
     dest: /etc/systemd/system/flannel.service
 #  when: inventory_hostname in groups['kube-masters']
+
+- name: create cni config dir
+  file:
+    path: "{{ kube_cni_conf_dir }}"
+    state: directory
   
 # create flannel for cni interface
 - name: create cni interface for flannel
