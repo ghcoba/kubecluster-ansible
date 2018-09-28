@@ -530,7 +530,11 @@ kube_cni_conf_dir: /etc/cni/net.d
 # package version and download url variables
 
 # https://github.com/coreos/flannel/releases/download/v0.10.0/flannel-v0.10.0-linux-amd64.tar.gz
-flannel_version: 0.10.0
+#flannel_version: 0.10.0
+
+# https://github.com/coreos/flannel/releases/download/v0.9.1/flannel-v0.9.1-linux-amd64.tar.gz
+flannel_version: 0.9.1
+
 
 flannel_download_url_base: "https://github.com/coreos/flannel/releases/download/v{{ flannel_version }}"
 flannel_release: "flannel-v{{ flannel_version }}-linux-amd64"
@@ -541,7 +545,7 @@ flannel_download_dir: /etc/flannel_download
 
 # flannel system variables
 
-flannel_etcd_key: "/coreos.com/network"
+flannel_etcd_keyvalue_dire: "/coreos.com/network"
 
 flannel_network: "{{ cluster_network_cidr }}"
 
@@ -549,17 +553,13 @@ flannel_network_config_str: "{ Network: 10.244.0.0/16, SubnetLen: 24, Backend: {
 
 flannel_bin_dir: "/usr/local/bin"
 flannel_config_dir: "/etc/sysconfig"
-flannel_config_file: "{{ flannel_config_dir }}/flanneld"
+flannel_config_file: "{{ flannel_config_dir }}/flanneld.conf"
 flannel_network_config_key_json_file: "{{ flannel_config_dir }}/flannel-config-vxlan.json"
-flannel_docker_option_file: /run/flannel/docker
+
+flannel_network_config_dir: "/run/flannel"
 flannel_remove_docker0_script_file: remove-docker0.sh
 
-flannel_subnetenv_file: "/run/flannel/subnet.env"
-
-flannel_etcd_ca_file: "{{ etcd_ca_file }}"
-flannel_etcd_client_cert_file: "{{ etcd_client_cert_file }}"
-flannel_etcd_client_key_file: "{{ etcd_client_key_file }}"
-flannel_iface: "ens32"
+flannel_subnetenv_file: "{{ flannel_network_config_dir }}/subnet.env"
 
 flannel_user: root
 flannel_group: root

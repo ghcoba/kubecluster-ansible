@@ -1,14 +1,13 @@
 [Unit]
 Description=Docker Application Container Engine
 Documentation=https://docs.docker.com
-After=network-online.target firewalld.service flannel.service
-Wants=network-online.target
+After=firewalld.service flannel.service
 Requires=flannel.service
 
 [Service]
 Type=notify
 
-EnvironmentFile=-{{ flannel_docker_option_file }}
+EnvironmentFile=-{{ flannel_network_config_dir }}/docker
 
 # the default is not to use systemd for cgroups because the delegate issues still
 # exists and systemd currently does not support the cgroup feature set required

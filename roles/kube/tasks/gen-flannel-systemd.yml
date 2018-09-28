@@ -14,6 +14,21 @@
     dest: "{{ flannel_bin_dir }}/mk-docker-opts.sh"
     mode: 0751
 
+# create flannel config enviroment file flanneld ( systemd requires )
+- name: create flannel environment config file - /etc/sysconfig/flanneld.conf
+  template:
+    src:  flanneld.conf.j2
+    dest: "{{ flannel_config_file }}"
+    mode: 0751
+
+# create network config directory (/run/flannel/, mk-docker-opts.sh and service require
+#    to generte /run/flannel/docker, /run/rlannel/subnet.env in this dire  )
+- name: create network config directory /run/flannel
+  file:
+    path: "{{ flannel_network_config_dir }}"
+    state: directory
+    mode: 0640
+
 #### generate flannel systemd service files 
   
 - name: create kube flannel systemd unit file

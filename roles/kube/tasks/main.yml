@@ -2,6 +2,9 @@
 
 ######     CREATE USER AND DIRECTORIES
 
+#- debug:
+#    msg: "{{ hostvars[groups['etcd-nodes'][0]]['host_ip_address'] }}"
+
 # create etcd user and data dir
 - name: STARTING role - kube - main TASK.    create etcd user and data dir
   import_tasks: create-etcd-user.yml

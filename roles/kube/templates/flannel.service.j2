@@ -5,36 +5,31 @@
 {%- endfor -%}
 {% endmacro -%}
 
-
 [Unit]
-Description=flannel container network agent
-Documentation=https://github.com/coreos/flannel
-After=network.target After=network-online.target
-Wants=After=network-online.target
+
+Description=Flanneld overlay address agent with etcd access
+Documentation=https://github.com/coreos
 Before=docker.service
 
+
+
 [Service]
-EnvironmentFile=-{{ flannel_config_file }}
 
-ExecStartPre={{ flannel_bin_dir }}/{{ flannel_remove_docker0_script_file }}
+Type=notify
 
-User=root
+EnvironmentFile={{ flannel_config_dir }}/flanneld.conf
 
-ExecStart={{ flannel_bin_dir }}/flanneld \
-    --etcd-endpoints={{ initial_cluster() }} \
-    --etcd-prefix={{ flannel_etcd_key }}
-    --etcd-cafile={{ flannel_etcd_ca_file }} \
-    --etcd-certfile={{ flannel_etcd_client_cert_file }} \
-    --etcd-keyfile={{ flannel_etcd_client_key_file }}
-    --iface={{ flannel_iface }} \
-    --ip-masq
+ExecStartPre={{ flannel_bin_dir }}/remove-docker0.sh
 
-ExecStartPost={{ flannel_bin_dir }}/mk-docker-opts.sh -d {{ flannel_docker_option_file }}
+ExecStart={{ flannel_bin_dir }}/flanneld $FLANNELD_ARGS
+
+ExecStartPost={{ flannel_bin_dir }}/mk-docker-opts.sh -k DOCKER_NETWORK_OPTIONS -d {{ flannel_network_config_dir }}/docker
 
 Restart=on-failure
-Type=notify
-LimitNOFILE=65536
+
+
 
 [Install]
-WantedBy=multi-user.target
 
+WantedBy=multi-user.target
+RequiredBy=docker.service
