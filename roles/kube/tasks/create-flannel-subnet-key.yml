@@ -1,6 +1,20 @@
 ---
 
-# create etcd config key on etcd
+#- hosts: cluster
+#  vars:
+#    etcd_client_port: 2379
+#    etcd_ca_file: "/etc/etcd/ssl/etcd-ca.pem"
+#    etcd_client_cert_file: "/etc/etcd/ssl/etcd-client.pem"
+#    etcd_client_key_file: "/etc/etcd/ssl/etcd-client-key.pem"
+#    etcd_bin_path: "/usr/local/bin"
+#    flannel_network_config_key_json_file: "/etc/sysconfig/flannel-config-vxlan.json"
+#    flannel_config_dir: "/etc/sysconfig"
+#    flannel_network: "10.244.0.0/16"
+
+
+# create flannel subnet config key on etcd
+
+# tasks:
 
 - name: copy flannel network config json file to the first etcd node
   template:
@@ -10,15 +24,7 @@
   run_once: true
 
 
-#- name: create etcd config key on etcd
-#  shell: /usr/local/bin/etcdctl --ca-file=/etc/etcd/ssl/etcd-ca.pem --cert-file=/etc/etcd/ssl/etcd-client.pem --key-file=/etc/etcd/ssl/etcd-client-key.pem --endpoints=https://{{ hostvars[groups['etcd-nodes'][0]]['host_ip_address'] }}:2379 set /coreos.com/network/config < {{ flannel_network_config_key_json_file }}
-#  args:
-#    chdir: "{{ flannel_config_dir }}" 
-#    creates: /filename
-#  delegate_to: "{{ groups['etcd-nodes'][0] }}"
-#  run_once: true
-
-# copy write-flannel-etcd-keyvalue.sh to first master node
+# copy make-master-ca-cert.sh to first master node
 - name: copy write-flannel-etcd-keyvalue.sh
   copy:
     src: write-flannel-etcd-keyvalue.sh
@@ -30,12 +36,6 @@
   delegate_to: "{{ groups['kube-masters'][0] }}"
 
 # spawn to write-flannel-etcd-keyvalue.sh to write flannel network config key-value to etcd
-# flannel service will need retrieve subnet configuation data to create flannel overlay network
-# - use : etcdctl set /coreos.com/network/config "{"Network": ..... " command to set 
-#         flannel subnet key (and create directory ) to etcd store
-# remark: bash environment need --login to use correct enviroment setting for etcdctl command
-#   or, etcdctl command exec will fail using ansible script
-
 - name: write flannel network config key-value to etcd on first node of kube-masters
   command:
     "{{ flannel_config_dir }}/write-flannel-etcd-keyvalue.sh"

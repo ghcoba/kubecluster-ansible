@@ -1,0 +1,27 @@
+---
+
+- hosts: cluster
+  vars:
+    etcd_client_port: 2379
+    etcd_ca_file: "/etc/etcd/ssl/etcd-ca.pem"
+    etcd_client_cert_file: "/etc/etcd/ssl/etcd-client.pem"
+    etcd_client_key_file: "/etc/etcd/ssl/etcd-client-key.pem"
+    etcd_bin_path: "/usr/local/bin"
+
+  tasks:
+  - name: copy etcdctl-env.rc for etcdctl environment variables
+    template:
+      src: roles/kube/templates/etcdctl-env.rc.j2
+      dest: /root/.etcdctl-env.rc
+
+  - name: copy write-etcdctl-env.sh to /usr/local/bin
+    copy:
+      src: roles/kube/files/write-etcdctl-env.sh
+      dest: "{{ etcd_bin_path }}/write-etcdctl-env.sh"
+      owner: root
+      group: root
+      mode: 0751
+
+  - name: write etctctl env - append etcdctl-env.rc to /root/.bash_profile
+    command: "{{ etcd_bin_path }}/write-etcdctl-env.sh"
+    

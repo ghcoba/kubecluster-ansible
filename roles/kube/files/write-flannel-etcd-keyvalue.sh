@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash --login 
 
 # Copyright 2017 The Kubernetes Authors.
 #
@@ -34,5 +34,11 @@ etcd_opt="${ETCD_OPT:="${1}"}"
 etcd_op="${ETCD_OP:="${1}"}"
 etcd_target="${ETCD_TARGET:="${1}"}"
 etcd_source="${ETCD_SOURCE:="${1}"}"
+
+echo $etcd_cmd > key.log
+echo $etcd_opt >> key.log
+echo $etcd_op >> key.log
+echo $etcd_target >> key.log
+echo $etcd_source >> key.log
 
 $etcd_cmd $etcd_opt $etcd_op $etcd_target < $etcd_source
