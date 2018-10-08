@@ -2,9 +2,6 @@
 
 ######     CREATE USER AND DIRECTORIES
 
-#- debug:
-#    msg: "{{ hostvars[groups['etcd-nodes'][0]]['host_ip_address'] }}"
-
 # create etcd user and data dir
 - name: STARTING role - kube - main TASK.    create etcd user and data dir
   import_tasks: create-etcd-user.yml
@@ -81,6 +78,10 @@
 - name: ROLE kube task main sub gen-etcd-systemd TASK.  generate etcd systemd and config
   import_tasks: gen-etcd-systemd.yml
 
+# it will append environment setting to /root/.bash_profile (not check repeat appending)
+#- name: create environment setting for etcdctl
+#  import_tasks: create-etcdctl-env.yml
+
 # config single node time sync source for cluster 
 # setup single node time sync source for etcd cluster
 - name: ROLE kube task main sub change-ntp-config TASK.  change ntp config to single time src and restart ntp
@@ -105,8 +106,14 @@
 #######  DEPLOY FLANNEL NETWORK ON KUBE-NODES and KUBE-MASTERS
 
 # create flannel config key on etcd
-- name: create flannel config key on etcd
-  import_tasks: create-flannel-key-on-etcd.yml
+#  ######### -> we make it ansible playbook tasks (in playbook dep-kube.yml) which will run
+#   after etcd and flannel installation finished. 
+# (we can not make it works in a roles task as at this place)
+
+#- name: create flannel config key on etcd
+#  import_tasks: create-flannel-key-on-etcd.yml
+#  import_tasks: create-flannel-subnet-key.yml
+
 
 # install flannel binary
 - name: install flannel binary using remove

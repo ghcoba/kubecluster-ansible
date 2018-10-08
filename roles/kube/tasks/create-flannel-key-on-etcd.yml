@@ -6,11 +6,9 @@
   template:
     src: flannel-config-vxlan.json.j2
     dest: "{{ flannel_network_config_key_json_file }}"
-  delegate_to: "{{ groups['etcd-nodes'][0] }}"
+  delegate_to: "{{ groups['kube-masters'][0] }}"
   run_once: true
 
-#- debug:
-#    msg: " {{ groups['etcd-nodes'][0] }}"
 
 #- name: create etcd config key on etcd
 #  shell: /usr/local/bin/etcdctl \
@@ -30,29 +28,35 @@
 #  delegate_to: "{{ groups['etcd-nodes'][0] }}"
 #  run_once: true
 
-# copy make-master-ca-cert.sh to first master node
-#- name: copy write-flannel-etcd-keyvalue.sh
-#  copy:
-#    src: write-flannel-etcd-keyvalue.sh
-#    dest: "{{ flannel_config_dir }}"
-#    owner: root
-#    group: root
-#    mode: "0500"
-#  run_once: true
-#  delegate_to: "{{ groups['kube-masters'][0] }}"
+# copy write-flannel-etcd-keyvalue.sh to first master node
+- name: copy write-flannel-etcd-keyvalue.sh
+  copy:
+    src: write-flannel-etcd-keyvalue.sh
+    dest: "{{ flannel_config_dir }}"
+    owner: root
+    group: root
+    mode: "0500"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
 
 # spawn to write-flannel-etcd-keyvalue.sh to write flannel network config key-value to etcd
-#- name: write flannel network config key-value to etcd on first node of kube-masters
-#  command:
-#    "{{ flannel_config_dir }}/write-flannel-etcd-keyvalue.sh"
-#  args:
+# flannel service will need retrieve subnet configuation data to create flannel overlay network
+# - use : etcdctl set /coreos.com/network/config "{"Network": ..... " command to set 
+#         flannel subnet key (and create directory ) to etcd store
+# remark: bash environment need --login to use correct enviroment setting for etcdctl command
+#   or, etcdctl command exec will fail using ansible script
+
+- name: write flannel network config key-value to etcd on first node of kube-masters
+  command:
+    "{{ flannel_config_dir }}/write-flannel-etcd-keyvalue.sh"
+  args:
 #    creates: ""
-#    chdir: "{{ flannel_config_dir }}"
-#  environment:
-#    ETCD_CMD: "/usr/local/bin/etcdctl"
-#    ETCD_OPT: " --ca-file={{ etcd_ca_file }} --cert-file={{ etcd_client_cert_file }} --key-file={{ etcd_client_key_file }} --endpoints=https://{{ hostvars[groups['etcd-nodes'][0]]['host_ip_address'] }}:2379"
-#    ETCD_OP: " set"
-#    ETCD_TARGET: "/coreos.com/network/config"
-#    ETCD_SOURCE: "{{ flannel_network_config_key_json_file }}"
-#  run_once: true
-#  delegate_to: "{{ groups['kube-masters'][0] }}"
+    chdir: "{{ flannel_config_dir }}"
+  environment:
+    ETCD_CMD: "/usr/local/bin/etcdctl"
+    ETCD_OPT: " --ca-file={{ etcd_ca_file }} --cert-file={{ etcd_client_cert_file }} --key-file={{ etcd_client_key_file }} --endpoints=https://{{ hostvars[groups['etcd-nodes'][0]]['host_ip_address'] }}:2379"
+    ETCD_OP: " set"
+    ETCD_TARGET: "/coreos.com/network/config"
+    ETCD_SOURCE: "{{ flannel_network_config_key_json_file }}"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"

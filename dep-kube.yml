@@ -1,5 +1,10 @@
 ---
 
+# ATTENTION: 
+# 1. first run playbook write-flannel-subnet-config.yml  (after etcd is up). 
+#
+
+# system prep
 - hosts: cluster
   become: yes
   roles:
@@ -7,6 +12,7 @@
   tags:
     - system-prep
 
+# deploy kubernetes cluster
 - hosts: cluster
   become: yes
   roles:
