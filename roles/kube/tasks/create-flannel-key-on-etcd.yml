@@ -13,7 +13,17 @@
 #    msg: " {{ groups['etcd-nodes'][0] }}"
 
 #- name: create etcd config key on etcd
-#  shell: /usr/local/bin/etcdctl --ca-file=/etc/etcd/ssl/etcd-ca.pem --cert-file=/etc/etcd/ssl/etcd-client.pem --key-file=/etc/etcd/ssl/etcd-client-key.pem --endpoints=https://{{ hostvars[groups['etcd-nodes'][0]]['host_ip_address'] }}:2379 set /coreos.com/network/config < {{ flannel_network_config_key_json_file }}
+#  shell: /usr/local/bin/etcdctl \
+#             --ca-file=/etc/etcd/ssl/etcd-ca.pem \
+#             --cert-file=/etc/etcd/ssl/etcd-client.pem \
+#             --key-file=/etc/etcd/ssl/etcd-client-key.pem \
+#             --endpoints=https://{{ hostvars[groups['etcd-nodes'][0]]['host_ip_address'] }}:2379 \
+#             set /coreos.com/network/config 
+#             < \
+#             {{ flannel_network_config_key_json_file }}
+#
+#  shell: #  /usr/local/bin/etcdctl --ca-file=/etc/etcd/ssl/etcd-ca.pem --cert-file=/etc/etcd/ssl/etcd-client.pem --key-file=/etc/etcd/ssl/etcd-client-key.pem --endpoints=https://{{ hostvars[groups['etcd-nodes'][0]]['host_ip_address'] }}:2379 set /coreos.com/network/config <  {{ flannel_network_config_key_json_file }}
+#
 #  args:
 #    chdir: "{{ flannel_config_dir }}" 
 #    creates: /filename

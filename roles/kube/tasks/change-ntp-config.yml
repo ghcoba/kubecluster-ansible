@@ -1,5 +1,10 @@
 ---
 
+- name: STARTING install ntp server ( change-ntp-config TASK)
+  yum:
+    name: ntp
+    state: present
+
 - name: STARTING change-ntp-config TASK. create ntp config for all nodes
   template:
     src: client_ntp.conf.j2
@@ -15,4 +20,5 @@
 - name: restart ntpd of all node of cluster
   systemd:
     name: ntpd
+    enabled: yes
     state: restarted

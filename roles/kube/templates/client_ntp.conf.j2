@@ -32,6 +32,8 @@ restrict {{ ntp_master_node_address() }}
 # mask out all public ntp server for all client ntp server (client ntp use master ntp server of cluster)
 # Use public servers from the pool.ntp.org project.
 # Please consider joining the pool (http://www.pool.ntp.org/join.html).
+
+#server 0.cn.pool.ntp.org iburst
 #server 0.centos.pool.ntp.org iburst
 #server 1.centos.pool.ntp.org iburst
 #server 2.centos.pool.ntp.org iburst
