@@ -2,5 +2,6 @@
 - name: STARTING etcd-restart TASK.    restart etcd
   systemd:
     name: etcd
+    enabled: yes
     state: restarted
   when: inventory_hostname in groups['etcd-nodes']

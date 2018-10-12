@@ -79,8 +79,8 @@
   import_tasks: gen-etcd-systemd.yml
 
 # it will append environment setting to /root/.bash_profile (not check repeat appending)
-#- name: create environment setting for etcdctl
-#  import_tasks: create-etcdctl-env.yml
+- name: create environment setting for etcdctl
+  import_tasks: create-etcdctl-env.yml
 
 # config single node time sync source for cluster 
 # setup single node time sync source for etcd cluster

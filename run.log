@@ -1,22 +1,21 @@
 PLAY RECAP ***************************************************************************************
-node1                      : ok=111  changed=63   unreachable=0    failed=0
-node2                      : ok=71   changed=27   unreachable=0    failed=0
-node3                      : ok=71   changed=27   unreachable=0    failed=0
-node4                      : ok=94   changed=34   unreachable=0    failed=0
-node5                      : ok=94   changed=34   unreachable=0    failed=0
-node6                      : ok=94   changed=34   unreachable=0    failed=0
+node1                      : ok=112  changed=61   unreachable=0    failed=0
+node2                      : ok=72   changed=29   unreachable=0    failed=0
+node3                      : ok=72   changed=29   unreachable=0    failed=0
+node4                      : ok=95   changed=34   unreachable=0    failed=0
+node5                      : ok=95   changed=34   unreachable=0    failed=0
+node6                      : ok=95   changed=34   unreachable=0    failed=0
 
-STARTING kub-restart TASK.    restart kubernetes apiserver service ----- 40.71s
-copy local kubectl and other  binary for kube-nodes exec to kube-nodes -- 35.76s
-ROLE kube TASK main sub install-kubernetes-bin-using-local-bin TASK. copy local kube binary to install on kube-masters -- 32.91s
-install local docker package to docker-nodes using yum ----------------- 19.66s
-copy cni binary -------------------------------------------------------- 18.30s
-STARTING docker-restart TASK.    restart docker service ---------------- 15.68s
-ensure required packages for docker ------------------------------------ 14.38s
-copy ansible tmp backup master certs to tmp config directory ----------- 13.56s
-copy local kubelet binary for kube-nodes ------------------------------- 13.50s
-STARTING etcd-restart TASK.    restart etcd ---------------------------- 12.59s
+STARTING kub-restart TASK.    restart kubernetes apiserver service ----- 88.04s
+copy cni binary -------------------------------------------------------- 27.06s
+ROLE kube TASK main sub install-kubernetes-bin-using-local-bin TASK. copy local kube binary to install on kube-masters -- 13.23s
+copy local kubectl and other  binary for kube-nodes exec to kube-nodes -- 12.73s
+copy ansible tmp backup certs to all kube master server nodes ---------- 10.47s
+STARTING etcd-restart TASK.    restart etcd ----------------------------- 9.64s
+copy ansible tmp backup master certs to tmp config directory ------------ 9.59s
+copy ansible tmp backup master certs to tmp config directory of first node of kube-nodes --- 9.06s
+copy ansible tmp backup certs to all etcd server nodes ------------------ 8.51s
+fetch backuped kube cert files from the first master server node to ansible tmp directory --- 7.62s
 
-Playbook finished: Sat Sep 29 10:37:40 2018, 183 total tasks.  0:07:26 elapsed.
+Playbook finished: Tue Oct  9 05:15:58 2018, 184 total tasks.  0:07:05 elapsed.
 
-Playbook run took 0 days, 0 hours, 7 minutes, 46 seconds

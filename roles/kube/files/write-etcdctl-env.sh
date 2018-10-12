@@ -18,5 +18,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-cat /root/.etcdctl-env.rc >> /root/.bash_profile
+#cat /root/.etcdctl-env.rc >> /root/.bash_profile
 
+echo # added for setting etcdctl environment in /root/.bash_profile >> /root/.bash_profile
+echo source /root/.etcdctl-env.rc >> /root/.bash_profile
