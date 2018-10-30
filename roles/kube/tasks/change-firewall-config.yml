@@ -15,6 +15,21 @@
 - name: change firewalll to enable ntp service port for all node of cluster
   command: "firewall-cmd --add-service=ntp --permanent"
 
+# for master nodes - apiserver listen port
+
+- name: change firewalll to enable port 6443 for all cluster masters and nodes
+  command: "firewall-cmd --zone=public --add-port=6443/tcp --permanent"
+
+- name: change firewalll to enable port 8080 for all cluster masters and nodes
+  command: "firewall-cmd --zone=public --add-port=8080/tcp --permanent"
+
+# for work nodes - kubelet listen port
+
+- name: change firewalll to enable port 10250 for all cluster masters and nodes
+  command: "firewall-cmd --zone=public --add-port=10250/tcp --permanent"
+
+- name: change firewalll to enable port 10255 for all cluster masters and nodes
+  command: "firewall-cmd --zone=public --add-port=10255/tcp --permanent"
 
 - name: reload firewall to take effect for all cluster nodes
   command: "firewall-cmd --reload"

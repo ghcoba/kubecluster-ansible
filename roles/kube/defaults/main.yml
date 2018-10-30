@@ -424,10 +424,11 @@ kube_scheduler_kubeconfig_file: "{{ kube_conf_dir }}/scheduler.conf"
 kube_apiserver_url: "https://{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:6443"
 kube_apiserver_ip: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
 
-kube_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:5000"
+#kube_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:5000"
+kube_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:6443"
 kube_load_balancer_apiserver_ip: "{{ hostvars['lb-node']['host_ip_address'] }}"
 
-arg_str_cluster: " config set-cluster kubernetes  --certificate-authority={{ kube_ca_file }} --embed-certs=true --server={{ kube_apiserver_url }} --kubeconfig=admin.conf"
+arg_str_cluster: " config set-cluster kubernetes  --certificate-authority={{ kube_ca_file }} --embed-certs=true --server={{ kube_load_balancer_apiserver_url }} --kubeconfig=admin.conf"
 arg_str_credentials: " config set-credentials kubernetes-admin --client-certificate={{ kube_admin_cert_file }} --embed-certs=true --client-key={{ kube_admin_key_file }} --kubeconfig=admin.conf"
 arg_str_context: " config set-context kubernetes-admin@kubernetes --cluster=kubernetes --user=kubernetes-admin --kubeconfig=admin.conf"
 arg_str_defaultcontext: " config use-context kubernetes-admin@kubernetes --kubeconfig=admin.conf"
@@ -437,7 +438,8 @@ arg_str_kube_config: "{{ arg_str_cluster }}{{ arg_str_credentials }}{{ arg_str_c
 # ============================================================================================
 # varibles for gen kubelet config
 
-kube_kubelet_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:5000"
+#kube_kubelet_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:5000"
+kube_kubelet_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:6443"
 kube_kubelet_load_balancer_apiserver_ip: "{{ hostvars['lb-node']['host_ip_address'] }}"
 
 arg_str_kubelet_cluster: " config set-cluster kubernetes  --certificate-authority={{ kube_ca_file }} --embed-certs=true --server={{ kube_kubelet_load_balancer_apiserver_url }} --kubeconfig=kubelet.conf"
@@ -458,7 +460,8 @@ arg_str_kubelet_kube_config: "{{ arg_str_kubelet_cluster }}{{ arg_str_kubelet_cr
 # ============================================================================================
 # varibles for gen kube-proxy config
 
-kube_kube_proxy_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:5000"
+#kube_kube_proxy_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:5000"
+kube_kube_proxy_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:6443"
 kube_kube_proxy_load_balancer_apiserver_ip: "{{ hostvars['lb-node']['host_ip_address'] }}"
 
 arg_str_kube_proxy_cluster: " config set-cluster kubernetes --certificate-authority={{ kube_ca_file }} --embed-certs=true --server={{ kube_kube_proxy_load_balancer_apiserver_url }} --kubeconfig=kube-proxy.conf"

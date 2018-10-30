@@ -9,6 +9,9 @@
 
 Description=Flanneld overlay address agent with etcd access
 Documentation=https://github.com/coreos
+After=network.target
+After=network-online.target
+Wants=network-online.target
 Before=docker.service
 
 
@@ -21,7 +24,12 @@ EnvironmentFile={{ flannel_config_dir }}/flanneld.conf
 
 ExecStartPre={{ flannel_bin_dir }}/remove-docker0.sh
 
-ExecStart={{ flannel_bin_dir }}/flanneld $FLANNELD_ARGS
+ExecStart={{ flannel_bin_dir }}/flanneld \
+                 -etcd-cafile={{ etcd_ca_file }} \
+                 -etcd-certfile={{ etcd_client_cert_file }} \
+                 -etcd-keyfile={{ etcd_client_key_file }} \
+                 -etcd-endpoints={{ initial_cluster() }} \
+                 -etcd-prefix=/coreos.com/network
 
 ExecStartPost={{ flannel_bin_dir }}/mk-docker-opts.sh -k DOCKER_NETWORK_OPTIONS -d {{ flannel_network_config_dir }}/docker
 

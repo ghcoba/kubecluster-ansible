@@ -94,8 +94,8 @@
 
 # start etcd service  
 
-#- name: ROLE kube task main sub etcd-start TASK.  start etcd
-#  import_tasks: etcd-start.yml
+- name: ROLE kube task main sub etcd-start TASK.  start etcd
+  import_tasks: etcd-start.yml
 
 # restart etcd cluster to make all configuration take effect  
 - name: ROLE kube task main sub etcd-restart TASK.   restart etcd
@@ -113,7 +113,8 @@
 #- name: create flannel config key on etcd
 #  import_tasks: create-flannel-key-on-etcd.yml
 #  import_tasks: create-flannel-subnet-key.yml
-
+- name: create flannel subnet json
+  import_tasks: create-flannel-subnet-json.yml
 
 # install flannel binary
 - name: install flannel binary using remove
@@ -126,6 +127,10 @@
 # generate flannel service systemd unit file
 - name: generate flannel service systemd unit file
   import_tasks: gen-flannel-systemd.yml
+
+# start flannel service
+- name: start flannel service
+  import_tasks: flannel-start.yml
 
 # start/restart flannel service
 - name: restart flannel service
@@ -145,6 +150,7 @@
 - name: generate docker systemd unit file with flannel network integration
   import_tasks: gen-docker-systemd.yml
 
+# flannel service must already started ( docker requires flannel network )
 - name: ROLE kube task main sub docker-restart
   import_tasks: docker-restart.yml
 
@@ -159,11 +165,17 @@
   import_tasks: install-kubernetes-bin.yml
   when: ansible_use_local_package != true
 
+
+# restart docker service before kubelet
+- name: ROLE kube task main sub docker-restart
+  import_tasks: docker-restart.yml
+
+
+
 # copy local binary and install kubernetes binary files
 - name: ROLE kube TASK main sub install-kubernetes-bin-using-local-bin TASK.  copy local bin to install kub$
   import_tasks: install-kubernetes-bin-using-local-bin.yml
   when: ansible_use_local_package == true
-
 
 # config kubernetes cluster service
 
@@ -191,8 +203,8 @@
 
 # start kube services
 # must generate config files (controller-manager and scheduler config) before starting services
-#- name: ROLE kube task main sub kube-start TASK.  start kube services
-#  import_tasks: kube-start.yml
+- name: ROLE kube task main sub kube-start TASK.  start kube services
+  import_tasks: kube-start.yml
 
 # restart kubernetes cluster to make all configuration take effect
 - name: ROLE kube task main sub kube-restart TASK.   restart kube services
