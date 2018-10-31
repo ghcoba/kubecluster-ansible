@@ -25,6 +25,7 @@
 
 - name: change firewalll to enable port 8081 for all cluster masters and nodes
   command: "firewall-cmd --zone=public --add-port=8081/tcp --permanent"
+
 # for work nodes - kubelet listen port
 
 - name: change firewalll to enable port 10250 for all cluster masters and nodes
