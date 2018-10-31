@@ -74,6 +74,7 @@
     CERT_GROUP: "{{ kube_cert_group }}"
     LOAD_BALANCER_IP: "{% for host in groups['load-balancer'] %}{{ hostvars[host]['load_balancer_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
     APISERVER_SERVICE_CLUSTER_IP: "{{ apiserver_service_cluster_ip }}"
+    CLUSTER_DNS_IP: "{{ kube_dns_ip }}"
 
 #- name: check cert backup dir exist
 #  stat: 

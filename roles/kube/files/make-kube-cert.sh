@@ -39,6 +39,7 @@ set -o pipefail
 node_ips="${NODE_IPS:="${1}"}"
 load_balancer_ip="${LOAD_BALANCER_IP:="${1}"}"
 apiserver_service_cluster_ip="${APISERVER_SERVICE_CLUSTER_IP:="${1}"}"
+cluster_kube_dns_ip="${CLUSTER_DNS_IP:="${1}"}"
 node_dns="${NODE_DNS:=""}"
 arch="${ARCH:-"linux-amd64"}"
 cert_dir="${CERT_DIR:-"/srv/kubernetes"}"
@@ -109,7 +110,9 @@ cat <<EOF > apiserver.json
         "::1",
         "::",
 
-        "$load_balancer_ip", 
+        "$load_balancer_ip",
+
+        "$cluster_kube_dns_ip", 
 
         "$apiserver_service_cluster_ip",
         

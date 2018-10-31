@@ -11,7 +11,7 @@
 #    "{{ kube_bin_dir }}"/kubectl config set-cluster kubernetes
 #      --certificate-authority="{{ kube_ca_file }}" 
 #      --embed-certs=true 
-#      --server="{{ kube_apiserver_url }}"
+#      --server="{{ kube_load_balancer_apiserver_url }}"
 #      --kubeconfig=admin.conf
   command: "/usr/local/bin/kubectl {{ arg_str_cluster }}"
   args:
