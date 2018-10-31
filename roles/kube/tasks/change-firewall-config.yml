@@ -33,5 +33,11 @@
 - name: change firewalll to enable port 10255 for all cluster masters and nodes
   command: "firewall-cmd --zone=public --add-port=10255/tcp --permanent"
 
+- name: change firewalll to enable port 53/tcp for all cluster masters and nodes (dns, kube-dns port)
+  command: "firewall-cmd --zone=public --add-port=53/tcp --permanent"
+- name: change firewalll to enable port 53/udp for all cluster masters and nodes (dns, kube-dns port)
+  command: "firewall-cmd --zone=public --add-port=53/udp --permanent"
+
 - name: reload firewall to take effect for all cluster nodes
   command: "firewall-cmd --reload"
+
