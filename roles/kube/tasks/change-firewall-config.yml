@@ -38,6 +38,11 @@
   command: "firewall-cmd --zone=public --add-port=53/tcp --permanent"
 - name: change firewalll to enable port 53/udp for all cluster masters and nodes (dns, kube-dns port)
   command: "firewall-cmd --zone=public --add-port=53/udp --permanent"
+- name: change firewalll to enable port 5300/tcp for all cluster masters and nodes (dns, kube-dns port)
+  command: "firewall-cmd --zone=public --add-port=5300/tcp --permanent"
+- name: change firewalll to enable port 5300/udp for all cluster masters and nodes (dns, kube-dns port)
+  command: "firewall-cmd --zone=public --add-port=5300/udp --permanent"
+
 
 - name: reload firewall to take effect for all cluster nodes
   command: "firewall-cmd --reload"
